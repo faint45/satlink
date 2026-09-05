@@ -31,7 +31,7 @@ REPO = 'satlink'
 # _headers 是 Cloudflare Pages 專用；functions/ 在 Pages 上不會執行，
 # 但保留原始碼供對照，放在子目錄不影響站台。
 SKIP_FILES  = {'_headers'}
-SKIP_PREFIX = ('_',)
+SKIP_PREFIX = ('_', 'probe_')      # probe_* 是採集時的暫存下載，不是原始碼也不是資料
 
 def run(args, cwd=DIST, check=True):
     r = subprocess.run(args, cwd=cwd, capture_output=True, text=True,
