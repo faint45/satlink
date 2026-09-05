@@ -1485,7 +1485,9 @@ function frame(){
     const dist = camera.position.distanceTo(wp);
     const k = dist*0.030;
     gsLabel.scale.set(gsLabel.userData.aspect*k, k, 1);
-    gsLabel.visible = !occludedByEarth(wp) && dist < 260;
+    // 只在靠近時顯示站名：看整顆行星時，單一地面站的標籤是雜訊而非資訊。
+    // 25 單位約等於 3.9 個地球半徑 —— 大致是「看得出區域」而非「看整顆」的界線。
+    gsLabel.visible = !occludedByEarth(wp) && dist < 25;
   }
   const gsP = gsEci(gmst), gsV = obsVel(gsP);
 
