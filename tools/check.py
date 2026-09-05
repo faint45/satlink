@@ -45,7 +45,8 @@ def check_files():
     for f in ['rebuild_data.py', 'validation/test_frames.mjs',
               'validation/test_render_invariants.mjs',
               'validation/test_cam_geodesy.mjs',
-              'validation/test_uplink.mjs']:
+              'validation/test_uplink.mjs',
+              'validation/test_pwa.mjs']:
         rec('部署', f'{f} 存在', os.path.exists(os.path.join(ROOT, f)), '')
 
     for f, key in [('tle_cache.json','sats'), ('stars.json','n'),
@@ -266,11 +267,13 @@ def check_node_tests():
         rec('回歸', '座標框架回歸測試', None, '未安裝 node')
         rec('回歸', '渲染不變式回歸測試', None, '未安裝 node')
         rec('回歸', '攝影機標記大地座標回歸測試', None, '未安裝 node')
-        rec('回歸', '上行鏈路（天線雜訊方向性）', None, '未安裝 node'); return
+        rec('回歸', '上行鏈路（天線雜訊方向性）', None, '未安裝 node')
+        rec('回歸', 'PWA 安裝條件與行動版顯示', None, '未安裝 node'); return
     for name, f in [('座標框架回歸測試（IAU 1976 歲差）', 'test_frames.mjs'),
                     ('渲染不變式回歸測試（深度緩衝）', 'test_render_invariants.mjs'),
                     ('攝影機標記大地座標回歸測試', 'test_cam_geodesy.mjs'),
-                    ('上行鏈路（天線雜訊方向性）', 'test_uplink.mjs')]:
+                    ('上行鏈路（天線雜訊方向性）', 'test_uplink.mjs'),
+                    ('PWA 安裝條件與行動版顯示', 'test_pwa.mjs')]:
         path = os.path.join(ROOT, 'validation', f)
         if not os.path.exists(path):
             rec('回歸', name, None, '找不到 ' + f); continue

@@ -1,8 +1,8 @@
 # SatLink 完成度狀態
 
-> 本檔由 `check.py` 產生於 2026-09-05 07:21:32 UTC，不手寫。每次執行都重跑驗證，不沿用上次結論。
+> 本檔由 `check.py` 產生於 2026-09-05 07:33:03 UTC，不手寫。每次執行都重跑驗證，不沿用上次結論。
 
-**23 通過 · 0 失敗 · 0 未執行**
+**25 通過 · 0 失敗 · 0 未執行**
 
 
 ## 部署
@@ -10,13 +10,14 @@
 | 項目 | 結果 | 說明 |
 |---|---|---|
 | Service Worker 預快取清單與實際檔案一致 | ✅ PASS | 32 項；缺少 無 |
-| SW 版本號 | ✅ PASS | satlink-v1.15.0 |
+| SW 版本號 | ✅ PASS | satlink-v1.17.0 |
 | 大小與檔數在 Cloudflare Pages 限制內 | ✅ PASS | 33 檔 / 7.2 MB |
 | rebuild_data.py 存在 | ✅ PASS |  |
 | validation/test_frames.mjs 存在 | ✅ PASS |  |
 | validation/test_render_invariants.mjs 存在 | ✅ PASS |  |
 | validation/test_cam_geodesy.mjs 存在 | ✅ PASS |  |
 | validation/test_uplink.mjs 存在 | ✅ PASS |  |
+| validation/test_pwa.mjs 存在 | ✅ PASS |  |
 
 ## 資料
 
@@ -42,12 +43,13 @@
 | 渲染不變式回歸測試（深度緩衝） | ✅ PASS | 13 通過 / 0 失敗 |
 | 攝影機標記大地座標回歸測試 | ✅ PASS | 8 通過 / 0 失敗 |
 | 上行鏈路（天線雜訊方向性） | ✅ PASS | 13 通過 / 0 失敗 |
+| PWA 安裝條件與行動版顯示 | ✅ PASS | 31 通過 / 0 失敗 |
 
 ## Validation
 
 | 項目 | 結果 | 說明 |
 |---|---|---|
-| SatNOGS 全球地面站幾何比對 | ✅ PASS | 25 站；升起方位平均差 0.29°、最大仰角平均差 0.27°（SatNOGS 只報整數度，捨入即 ±0.5°） |
+| SatNOGS 全球地面站幾何比對 | ✅ PASS | 25 站；升起方位平均差 0.29°、最大仰角平均差 0.28°（SatNOGS 只報整數度，捨入即 ±0.5°） |
 | 都卜勒 vs Skyfield 獨立實作 | ✅ PASS | 擺幅 16,891 Hz；最大差 0.16 Hz（9.2 ppm） |
 | 大氣衰減 vs ITU-R 參考實作（P.676 / P.838） | ✅ PASS | 7 通過 / 0 失敗 |
 

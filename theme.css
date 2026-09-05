@@ -314,6 +314,27 @@ body::after{
   #warn{top:56px;font-size:9.5px;max-width:92vw;text-align:center}
   #off{top:56px}
 }
+/* ── 顯示區安全範圍（瀏海／動態島／home indicator）─────────────
+   只有在 index.html 的 viewport 帶 viewport-fit=cover 時，env() 才會回非零值；
+   桌面與無瀏海裝置上一律是 0，因此下列規則不影響原本版面。
+   不補的話：iPhone 直立時「目錄」鈕被動態島吃掉、底部時間列被 home indicator
+   壓住點不到；橫置時左右兩側的控制列會被圓角裁切。 */
+@media (max-width:720px){
+  #mnav{ top:calc(10px + env(safe-area-inset-top,0px));
+         left:calc(10px + env(safe-area-inset-left,0px)); }
+  #left{ padding-top:env(safe-area-inset-top,0px);
+         padding-bottom:env(safe-area-inset-bottom,0px);
+         padding-left:env(safe-area-inset-left,0px); }
+  #cam{ padding-top:env(safe-area-inset-top,0px); }
+  #focus,#roam_hint,#warn,#off{ top:calc(56px + env(safe-area-inset-top,0px)); }
+  #time{ padding-bottom:env(safe-area-inset-bottom,0px); }
+  #layers{ bottom:calc(37px + env(safe-area-inset-bottom,0px)); }
+  #right,#mission,#stats{ bottom:calc(74px + env(safe-area-inset-bottom,0px)); }
+  #pwa{ bottom:calc(80px + env(safe-area-inset-bottom,0px)); }
+  #layers,#time{ padding-left:env(safe-area-inset-left,0px);
+                 padding-right:env(safe-area-inset-right,0px); }
+}
+
 /* 桌面不需要手機專用的觸發元件 */
 @media (min-width: 721px){ #mnav,#mscrim{display:none} }
 

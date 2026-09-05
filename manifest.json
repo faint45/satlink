@@ -1,7 +1,7 @@
 {
   "name": "SatLink — 太空視角衛星通聯",
   "short_name": "SatLink",
-  "description": "真實 TLE 與 JPL 星曆驅動的 3D 地球衛星通聯模擬：614 顆衛星、真實鏈路預算、多波束覆蓋與 26 個深空任務。",
+  "description": "真實 TLE 與 JPL 星曆驅動的 3D 地球衛星通聯模擬：619 顆衛星、真實鏈路預算、多波束覆蓋與 26 個深空任務。",
   "id": "./",
   "start_url": "./",
   "scope": "./",

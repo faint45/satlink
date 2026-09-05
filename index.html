@@ -2,7 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- viewport-fit=cover 是 env(safe-area-inset-*) 生效的前提。
+     它與下方的 apple-mobile-web-app-status-bar-style:black-translucent 是一組：
+     後者讓內容延伸到狀態列底下，沒有 cover 就取不到安全距離，
+     有瀏海／動態島的 iPhone 上左上角的「目錄」按鈕會被蓋住。 -->
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SatLink — 太空視角衛星通聯</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#04060d">
@@ -25,7 +29,7 @@
 <div id="about">
  <div class="abox">
   <div class="ahd"><span>SATLINK</span><b>太空視角衛星通聯</b>
-    <button class="sb" id="a_x">開始 →</button></div>
+    <button class="sb" id="a_inst">安裝到主畫面</button><button class="sb" id="a_x">開始 →</button></div>
   <div class="abody">
    <p class="lead">這是一個真實資料驅動的 3D 地球。畫面上的衛星位置來自今日的軌道根數，
    訊號強度用真正的鏈路預算公式算，月球與深空探測器的位置來自 NASA/JPL 星曆。
@@ -187,6 +191,73 @@
   function offline(){ OFF.classList.toggle('show', !navigator.onLine); }
   addEventListener('online', offline); addEventListener('offline', offline); offline();
 
+  /* ── 安裝到主畫面 ──────────────────────────────────────────
+     兩個平台的機制完全不同，必須分開處理：
+
+     Android / Chrome ── 瀏覽器判定符合安裝條件後會丟 beforeinstallprompt。
+       攔下它、自己決定何時顯示按鈕，再呼叫 prompt()。不攔的話 Chrome 只會
+       顯示一條容易被忽略的迷你提示。
+
+     iOS / Safari ── **沒有任何安裝 API**，beforeinstallprompt 永遠不會觸發。
+       使用者只能從「分享 → 加入主畫面」自己加。介面若什麼都不說，多數人
+       不會知道可以安裝，所以這裡改成主動說明步驟。
+       另外 iOS 只有 Safari 能安裝：Chrome/Firefox 的 iOS 版共用 WebKit
+       但沒有這個選單項，因此偵測到那些瀏覽器時要據實說明。
+
+     兩者都在使用者關閉後記住選擇（localStorage 可能被隱私模式擋掉，要包 try）。 */
+  var STORE='satlink.installDismissed';
+  function dismissed(){ try{ return localStorage.getItem(STORE)==='1'; }catch(e){ return false; } }
+  function remember(){ try{ localStorage.setItem(STORE,'1'); }catch(e){} }
+
+  var standalone = (matchMedia && matchMedia('(display-mode: standalone)').matches)
+                   || navigator.standalone === true;
+  var ua = navigator.userAgent;
+  var isIOS = /iPad|iPhone|iPod/.test(ua)
+              || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  var iosSafari = isIOS && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  var deferred = null;
+
+  addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault(); deferred = e;
+    if(standalone || dismissed()) return;
+    show('可安裝到主畫面，離線也能看', '安裝', function(){
+      P.classList.remove('show');
+      deferred.prompt();
+      deferred.userChoice.then(function(){ deferred=null; remember(); });
+    });
+  });
+
+  // iOS 沒有事件可等，載入後主動提示；延遲到使用者看過畫面再說
+  if(isIOS && !standalone && !dismissed()){
+    setTimeout(function(){
+      if(P.classList.contains('show')) return;      // 別蓋掉更新提示
+      if(iosSafari){
+        show('可加到主畫面全螢幕使用', '怎麼做', function(){
+          T.textContent='點下方分享鈕 → 選「加入主畫面」';
+          B.textContent='知道了'; B.onclick=function(){ P.classList.remove('show'); remember(); };
+        });
+      } else {
+        show('用 Safari 開啟才能加到主畫面', '知道了', function(){
+          P.classList.remove('show'); remember();
+        });
+      }
+    }, 12000);
+  }
+
+  // 關於頁提供一個常駐入口，關掉提示之後仍找得到
+  window.__installHint = function(){
+    if(standalone){ show('已在主畫面模式執行', '關閉', function(){ P.classList.remove('show'); }); return; }
+    if(deferred){
+      deferred.prompt(); deferred.userChoice.then(function(){ deferred=null; });
+    } else if(iosSafari){
+      show('點下方分享鈕 → 選「加入主畫面」', '知道了', function(){ P.classList.remove('show'); });
+    } else if(isIOS){
+      show('iOS 需用 Safari 開啟才能加到主畫面', '知道了', function(){ P.classList.remove('show'); });
+    } else {
+      show('用瀏覽器選單的「安裝」或「加到主畫面」', '知道了', function(){ P.classList.remove('show'); });
+    }
+  };
+
   /* 本機開發不註冊 Service Worker：否則改了檔案仍會被舊快取供應，
      實測已兩次因此看到過期畫面。正式站（非 localhost）才啟用離線快取。 */
   var DEV = ['localhost','127.0.0.1','[::1]'].indexOf(location.hostname) >= 0;
@@ -288,6 +359,9 @@
     function close(){ A.classList.remove('show');
       try{ localStorage.setItem('satlink_seen','1'); }catch(e){} }
     document.getElementById('a_x').onclick=close;
+    // 安裝入口：關掉提示條之後仍找得到，且已在主畫面模式時會照實說明
+    document.getElementById('a_inst').onclick=function(){
+      close(); if(window.__installHint) window.__installHint(); };
     A.addEventListener('click', function(e){ if(e.target===A) close(); });
     addEventListener('keydown', function(e){ if(e.key==='Escape') close(); });
     var seen=false;
