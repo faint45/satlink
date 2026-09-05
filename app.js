@@ -450,6 +450,18 @@ async function initCams(){
   camsReady=true;
   return meta;
 }
+/* 打開即時影像圖層並同步按鈕狀態。
+   目錄裡的景點一直都列出來（不再等使用者先找到底部的圖層鈕），
+   所以點清單時要順手把地球上的標記也打開，否則會出現
+   「面板在播影像、地球上卻找不到那個點」的不一致。 */
+function ensureCamsOn(){
+  if(camsOn) return false;
+  camsOn = true;
+  if(camLayer) camLayer.visible = true;
+  $('ly_cams').classList.add('on');
+  return true;
+}
+
 let camStop=null;
 function openCam(i){
   const list=CAMS.camList(); if(i<0||i>=list.length) return;
@@ -560,13 +572,7 @@ function roamAdvance(){
 
 function roamStart(){
   if(!camsReady) return;
-  if(!camsOn){                                     // 漫遊本來就是在看影像，順手把圖層打開
-    camsOn = true;
-    if(camLayer) camLayer.visible = true;
-    const vb = document.getElementById('ly_cams');
-    if(vb) vb.classList.add('on');
-    buildList();
-  }
+  if(ensureCamsOn()) buildList();   // 漫遊本來就是在看影像，順手把圖層打開
   clearFocus();
   roamOn = true; roamT = performance.now();
   roamOrder = roamBuildOrder(); roamI = -1;
@@ -1224,8 +1230,9 @@ const SECTION_META = {
 };
 let openSections = new Set(['earth']);   // 預設展開景點：這個站最常被拿來看風景
 
-function secHead(key, n, forced){
-  const [title, sub] = SECTION_META[key];
+function secHead(key, n, forced, subOverride){
+  const [title, sub0] = SECTION_META[key];
+  const sub = subOverride || sub0;
   const open = forced || openSections.has(key);
   return `<div class="lsec stog${open?' open':''}" data-s="${key}">`+
          `<b>${open?'▾':'▸'}</b>${title}<span class="cnt">${n}</span><i>${sub}</i></div>`;
@@ -1237,12 +1244,15 @@ function buildList(){
   let html = '';
 
   // ── 世界知名景點 ───────────────────────────────────────
-  if(camsOn && camsReady){
+  // 不以 camsOn 為條件：這個站最常被拿來看風景，目錄裡卻要先去底部把圖層
+  // 打開才看得到清單，順序是反的。改成一直列出，點下去再順手開圖層。
+  if(camsReady){
     const rows = CAMS.camList().map((c,i)=>[c,i]).filter(([c])=> !q ||
         (c.zh+' '+(c.place||'')+' '+(c.title||'')).toLowerCase().includes(q));
     // 搜尋時強制展開，否則打了字卻看不到結果
     const open = openSections.has('earth') || !!q;
-    html += secHead('earth', rows.length, !!q);
+    html += secHead('earth', rows.length, !!q,
+                    camsOn ? '公開即時影像' : '公開即時影像 · 地球標記未開');
     if(open && rows.length){
       const byRegion = new Map(CAMS.REGION_ORDER.map(r=>[r,[]]));
       for(const r of rows) byRegion.get(CAMS.camRegion(r[0])).push(r);
@@ -1333,7 +1343,11 @@ function buildList(){
     buildList();
   });
   host.querySelectorAll('.sat').forEach(el=>el.onclick=()=>{
-    if(el.dataset.c !== undefined){ openCam(+el.dataset.c); flyToCam(+el.dataset.c); }
+    if(el.dataset.c !== undefined){
+      const turnedOn = ensureCamsOn();
+      openCam(+el.dataset.c); flyToCam(+el.dataset.c);
+      if(turnedOn) buildList();          // 標題的開關狀態要跟著更新
+    }
     else if(el.dataset.m !== undefined){ selectMission(+el.dataset.m); }
     else { sel = SATS[+el.dataset.i]; setFocus(sel); }
   });
