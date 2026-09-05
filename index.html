@@ -35,7 +35,8 @@
     <div>
      <h4>可以做什麼</h4>
      <ul>
-      <li>點左側清單任一顆衛星，右側即時顯示仰角、斜距、都卜勒頻移、鏈路餘裕</li>
+      <li>點左側清單任一顆衛星，右側即時顯示仰角、斜距、都卜勒頻移，以及<b>下行（衛星→地面站）與上行（地面站→衛星）兩條獨立的鏈路預算</b></li>
+      <li>畫面上以兩條分開的路徑表示雙向通聯：青色封包往地面跑、琥珀色往衛星跑；台北地面控制站的位置、天線口徑與 EIRP 都標在右側</li>
       <li>底部切換圖層：多波束覆蓋、太空探索任務、星團與系外行星、全球即時影像</li>
       <li>開「即時影像」後點地球上的圓圈，看該地的直播</li>
       <li><b>「漫遊」會替你選點</b>：自動飛到世界各地的風景據點、停留約一分鐘，鏡頭沿著當地緩慢繞行；想在某處多待一會兒，動一下滑鼠就會自動延後</li>
@@ -45,7 +46,8 @@
     <div>
      <h4>什麼是真的，什麼不是</h4>
      <ul>
-      <li><s>真</s> 軌道、通聯幾何、鏈路預算、月球位置與月相、波束覆蓋幾何</li>
+      <li><s>真</s> 軌道、通聯幾何、上行與下行鏈路預算、月球位置與月相、波束覆蓋幾何</li>
+      <li><s>真</s> 上行頻段依 ITU-R 分配與營運者公開規格（ARISS 145.99 MHz、Ku 14.0–14.5 GHz、Ka 27.5–30 GHz…）；GNSS 與氣象廣播照實標示「無使用者上行」，不虛構</li>
       <li><s>近似</s> 恆星／星團／系外行星只有<b>方向</b>是真的，距離畫在固定天球上</li>
       <li><s>近似</s> 深空任務方向真、徑向經對數壓縮，真實距離另外標示</li>
       <li><s>示意</s> 衛星外形為辨識用，非工程圖；放大倍率顯示於介面</li>
@@ -95,7 +97,7 @@
     <div class="row"><span class="k">視線速度</span><span class="v" id="v_rr">—</span></div>
   </div>
   <div class="sec">
-    <div class="lbl">訊號（真實鏈路預算）</div>
+    <div class="lbl">下行　衛星 → 地面站</div>
     <div class="row"><span class="k">都卜勒頻移</span><span class="v" id="v_dop">—</span></div>
     <div class="row"><span class="k">傳播延遲</span><span class="v" id="v_lat">—</span></div>
     <div class="row"><span class="k">FSPL 自由空間損耗</span><span class="v" id="v_fspl">—</span></div>
@@ -104,6 +106,25 @@
     <div class="row"><span class="k">Eb/N₀</span><span class="v" id="v_ebn0">—</span></div>
     <div class="row"><span class="k">鏈路餘裕 Margin</span><span class="v" id="v_marg">—</span></div>
     <div class="bar"><i id="v_bar" style="width:0%"></i></div>
+  </div>
+  <div class="sec" id="sec_up">
+    <div class="lbl">上行　地面站 → 衛星</div>
+    <div class="row"><span class="k">頻段</span><span class="v" id="u_band">—</span></div>
+    <div class="row"><span class="k">地面站 EIRP</span><span class="v" id="u_eirp">—</span></div>
+    <div class="row"><span class="k">都卜勒頻移</span><span class="v" id="u_dop">—</span></div>
+    <div class="row"><span class="k">FSPL 自由空間損耗</span><span class="v" id="u_fspl">—</span></div>
+    <div class="row"><span class="k">大氣+電離層</span><span class="v" id="u_atm">—</span></div>
+    <div class="row"><span class="k">星上 G/T</span><span class="v" id="u_gt">—</span></div>
+    <div class="row"><span class="k">C/N₀</span><span class="v" id="u_cn0">—</span></div>
+    <div class="row"><span class="k">鏈路餘裕 Margin</span><span class="v" id="u_marg">—</span></div>
+    <div class="bar"><i id="u_bar" style="width:0%"></i></div>
+    <div class="cite" id="u_note"></div>
+  </div>
+  <div class="sec">
+    <div class="lbl">地面站</div>
+    <div class="row"><span class="k">站名</span><span class="v" id="g_name">—</span></div>
+    <div class="row"><span class="k">座標</span><span class="v" id="g_pos">—</span></div>
+    <div class="row"><span class="k">上行天線</span><span class="v" id="g_ant">—</span></div>
   </div>
   <div class="sec">
     <div class="lbl">資料真實度</div>

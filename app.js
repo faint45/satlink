@@ -21,91 +21,163 @@ const toScene = (p) => new THREE.Vector3(p.x/U, p.z/U, -p.y/U);
    頻率一律 A 級；發射功率與天線增益多為 B 級（各衛星實際值不公開）。
    接收端天線：有口徑者用 Friis 拋物面公式即時算增益與波束寬，不寫死數字。 */
 function dish(D_m, f_Hz){ const g = PHY.dishGain(D_m, f_Hz); return {G:g.G_dBi, hpbw:g.hpbw_deg, D:D_m}; }
+/* 上行時地面站的發射增益。天線增益隨 f² 變化，直接沿用下行的數字會高估
+   —— 同一面 0.75 m 天線，Ka 上行 29.75 GHz 比下行 19.95 GHz 高約 3.5 dB。
+   因此凡是碟型天線都用上行頻率重算，不共用。 */
+function upTx(up){
+  if(!up) return null;
+  if(up.dish_m){ const g = PHY.dishGain(up.dish_m, up.f); return {G:g.G_dBi, hpbw:g.hpbw_deg}; }
+  return {G:up.txGain_dBi, hpbw:null};
+}
 
 const PROFILE = {
   leo_vhf:{ f:137.1e6, txPow_dBW:10*Math.log10(5), txGain_dBi:4, txFeed_dB:0.5,
     txPol:'circular', mode:'APT', bitrate:4160, hpbw:120,
     rx:{G:3, feed:1.5, NF:1.0, pol:'linear', hpbw:60},
     color:0x5ff0c8, label:'VHF 137 MHz · APT 氣象傳真',
-    src:'頻率 NOAA POES 規格 (A)；5 W/QFH 為公開代表值 (B)' },
+    src:'頻率 NOAA POES 規格 (A)；5 W/QFH 為公開代表值 (B)',
+    up:null, upNote:'NOAA POES 的 APT 是單向廣播；指令上行走 S 波段 2025–2110 MHz 且非公開，本站不建模' },
 
   station_vhf:{ f:145.800e6, txPow_dBW:10*Math.log10(5), txGain_dBi:0, txFeed_dB:1.0,
     txPol:'linear', mode:'FSK', bitrate:1200, hpbw:140,
     rx:{G:11, feed:1.2, NF:1.0, pol:'linear', hpbw:38},
     color:0xff5ec8, label:'VHF 145.8 MHz · 太空站業餘下行',
-    src:'頻率 ARISS 公開下行 (A)；5 W/全向為代表值 (B)' },
+    src:'頻率 ARISS 公開下行 (A)；5 W/全向為代表值 (B)',
+    up:{ f:145.990e6, txPow_dBW:10*Math.log10(25), txGain_dBi:11.5, txFeed_dB:1.2,
+         txPol:'linear', mode:'FSK', bitrate:1200,
+         rx:{G:0, feed:1.0, NF:5.0, pol:'linear', hpbw:120, Tant_K:290},
+         label:'VHF 145.99 MHz · ARISS 封包上行',
+         src:'頻率 ARISS 公開上行 (A)；地面 25 W / 11.5 dBi 交叉八木為業餘常見配置 (B)；'
+            +'ISS 端 0 dBi、NF 5 dB (C)' } },
 
   gnss_gps:{ f:1575.42e6, txPow_dBW:26.8-12.9, txGain_dBi:12.9, txFeed_dB:0.5,
     txPol:'circular', mode:'BPSK', bitrate:50, hpbw:42.6,
     rx:{G:3, feed:0.5, NF:1.5, pol:'circular', hpbw:90},
     color:0x9ee34f, label:'L1 1575.42 MHz · GPS C/A',
-    src:'頻率與 EIRP 26.8 dBW 依 IS-GPS-200 (A)；波束 ±21.3° 覆蓋全地球盤面' },
+    src:'頻率與 EIRP 26.8 dBW 依 IS-GPS-200 (A)；波束 ±21.3° 覆蓋全地球盤面',
+    up:null, upNote:'GNSS 使用者端純接收，沒有上行；控制段以 S 波段 1783.74 MHz 上傳導航電文，非民用' },
   gnss_gal:{ f:1575.42e6, txPow_dBW:27.0-13.0, txGain_dBi:13.0, txFeed_dB:0.5,
     txPol:'circular', mode:'BPSK', bitrate:250, hpbw:42.0,
     rx:{G:3, feed:0.5, NF:1.5, pol:'circular', hpbw:90},
     color:0x6fd3ff, label:'E1 1575.42 MHz · Galileo I/NAV',
-    src:'頻率 Galileo OS SIS ICD (A)；EIRP 為公開代表值 (B)' },
+    src:'頻率 Galileo OS SIS ICD (A)；EIRP 為公開代表值 (B)',
+    up:null, upNote:'GNSS 使用者端純接收，沒有上行' },
   gnss_glo:{ f:1602.0e6, txPow_dBW:27.0-12.5, txGain_dBi:12.5, txFeed_dB:0.5,
     txPol:'circular', mode:'BPSK', bitrate:50, hpbw:42.0,
     rx:{G:3, feed:0.5, NF:1.5, pol:'circular', hpbw:90},
     color:0xffa8a8, label:'L1 1602 MHz · GLONASS FDMA ch0',
-    src:'頻率 GLONASS ICD L1 FDMA (A)；EIRP 代表值 (B)' },
+    src:'頻率 GLONASS ICD L1 FDMA (A)；EIRP 代表值 (B)',
+    up:null, upNote:'GNSS 使用者端純接收，沒有上行' },
   gnss_bds:{ f:1561.098e6, txPow_dBW:27.0-12.5, txGain_dBi:12.5, txFeed_dB:0.5,
     txPol:'circular', mode:'BPSK', bitrate:50, hpbw:42.0,
     rx:{G:3, feed:0.5, NF:1.5, pol:'circular', hpbw:90},
     color:0xffd166, label:'B1I 1561.098 MHz · BeiDou',
-    src:'頻率 BDS-SIS-ICD-B1I (A)；EIRP 代表值 (B)' },
+    src:'頻率 BDS-SIS-ICD-B1I (A)；EIRP 代表值 (B)',
+    up:null, upNote:'GNSS 使用者端純接收，沒有上行' },
 
   iridium_l:{ f:1621.25e6, txPow_dBW:10*Math.log10(7), txGain_dBi:24, txFeed_dB:1.0,
     txPol:'circular', mode:'QPSK', bitrate:50e3, hpbw:9.0,
     rx:{G:3, feed:0.8, NF:1.5, pol:'circular', hpbw:90},
     color:0xc9a7ff, label:'L 1621.25 MHz · Iridium 點波束', hiveRings:3,
-    src:'頻率 Iridium L 頻段分配 (A)；48 波束/衛星，功率為代表值 (B)' },
+    src:'頻率 Iridium L 頻段分配 (A)；48 波束/衛星，功率為代表值 (B)',
+    up:{ f:1621.25e6, txPow_dBW:10*Math.log10(7), txGain_dBi:1.5, txFeed_dB:0.5,
+         txPol:'circular', mode:'QPSK', bitrate:2400,
+         rx:{G:24, feed:1.0, NF:2.0, pol:'circular', hpbw:8, Tant_K:290},
+         label:'L 1621.25 MHz · 手機上行（與下行同頻，分時雙工）',
+         src:'Iridium L 波段 1616–1626.5 MHz 為 TDD，上下行共用同一頻段 (A)；'
+            +'手持機 7 W 峰值 / 1.5 dBi 鞭狀天線 (B)' } },
 
   goes_l:{ f:1686.6e6, txPow_dBW:10*Math.log10(20), txGain_dBi:18, txFeed_dB:1.0,
     txPol:'linear', mode:'BPSK', bitrate:31e6, hpbw:18,
     rx:{...dish(3.0, 1686.6e6), feed:0.8, NF:1.2, pol:'linear'},
     color:0x7fe3ff, label:'L 1686.6 MHz · GOES GRB 影像下行',
-    src:'頻率 GOES-R GRB 規格 (A)；EIRP 代表值 (B)' },
+    src:'頻率 GOES-R GRB 規格 (A)；EIRP 代表值 (B)',
+    up:{ f:401.9e6, txPow_dBW:10*Math.log10(10), txGain_dBi:11, txFeed_dB:1.0,
+         txPol:'linear', mode:'BPSK', bitrate:300,
+         rx:{G:10, feed:1.0, NF:3.0, pol:'linear', hpbw:60, Tant_K:290},
+         label:'UHF 401.9 MHz · DCS 資料蒐集平台上行',
+         src:'GOES DCS 上行 401.7–402.1 MHz，300/1200 bps (A)；'
+            +'地面 DCP 10 W / 11 dBi 八木為典型配置 (B)' } },
 
   science_s:{ f:2250e6, txPow_dBW:10*Math.log10(10), txGain_dBi:6, txFeed_dB:1.0,
     txPol:'circular', mode:'QPSK', bitrate:2e6, hpbw:70,
     rx:{...dish(3.7, 2250e6), feed:0.8, NF:1.2, pol:'circular'},
     color:0xff9f6b, label:'S 2250 MHz · 科學衛星下行',
-    src:'S 頻段 2200–2290 MHz 為 SRS 空對地分配 (A)；功率代表值 (B)' },
+    src:'S 頻段 2200–2290 MHz 為 SRS 空對地分配 (A)；功率代表值 (B)',
+    up:{ f:2050e6, txPow_dBW:10*Math.log10(100), txGain_dBi:0, txFeed_dB:0.8,
+         txPol:'circular', mode:'BPSK', bitrate:4000,
+         rx:{G:0, feed:1.2, NF:3.5, pol:'circular', hpbw:120, Tant_K:290},
+         label:'S 2050 MHz · 遙測指令上行',
+         src:'ITU-R 空間操作 Earth-to-space 分配 2025–2110 MHz (A)；'
+            +'地面 3.7 m 天線 100 W、星上低增益全向天線 (B)',
+         dish_m:3.7 } },
 
   amateur_uhf:{ f:436.5e6, txPow_dBW:10*Math.log10(1), txGain_dBi:2, txFeed_dB:0.8,
     txPol:'linear', mode:'FSK', bitrate:9600, hpbw:120,
     rx:{G:14, feed:1.0, NF:0.9, pol:'linear', hpbw:30},
     color:0xa8ff8f, label:'UHF 436.5 MHz · 業餘衛星',
-    src:'435–438 MHz 業餘衛星服務分配 (A)；1 W 為立方衛星常見值 (B)' },
+    src:'435–438 MHz 業餘衛星服務分配 (A)；1 W 為立方衛星常見值 (B)',
+    up:{ f:145.900e6, txPow_dBW:10*Math.log10(25), txGain_dBi:11.5, txFeed_dB:1.2,
+         txPol:'linear', mode:'FSK', bitrate:1200,
+         rx:{G:0, feed:1.0, NF:3.0, pol:'linear', hpbw:120, Tant_K:290},
+         label:'VHF 145.9 MHz · 立方衛星上行',
+         src:'立方衛星常見 VHF 上行 / UHF 下行配對，頻段依 IARU 業餘衛星分配 (A)；'
+            +'地面 25 W / 11.5 dBi、星上 0 dBi 轉盤天線 (B)' } },
 
   eo_xband:{ f:8200e6, txPow_dBW:10*Math.log10(12), txGain_dBi:24, txFeed_dB:1.2,
     txPol:'circular', mode:'QPSK', bitrate:320e6, hpbw:8,
     rx:{...dish(5.4, 8200e6), feed:0.9, NF:1.3, pol:'circular'},
     color:0xffb3f0, label:'X 8.2 GHz · 對地觀測高速下行',
-    src:'8025–8400 MHz 為 EESS 空對地分配 (A)；速率/功率代表值 (B)' },
+    src:'8025–8400 MHz 為 EESS 空對地分配 (A)；速率/功率代表值 (B)',
+    up:{ f:2065e6, txPow_dBW:10*Math.log10(200), txGain_dBi:0, txFeed_dB:0.9,
+         txPol:'circular', mode:'BPSK', bitrate:2000,
+         rx:{G:0, feed:1.2, NF:3.5, pol:'circular', hpbw:120, Tant_K:290},
+         label:'S 2065 MHz · TT&C 指令上行',
+         src:'ITU-R 空間操作 Earth-to-space 2025–2110 MHz (A)；'
+            +'X 波段只做高速資料下行，指令另走 S 波段 (A)；地面 5.4 m 200 W (B)',
+         dish_m:5.4 } },
 
   oneweb_ku:{ f:11.7e9, txPow_dBW:10*Math.log10(3), txGain_dBi:33, txFeed_dB:0.8,
     txPol:'circular', mode:'QPSK', bitrate:80e6, hpbw:4.0, hiveRings:4,
     rx:{...dish(0.7, 11.7e9), feed:0.7, NF:1.6, pol:'circular'},
     color:0x8fb8ff, label:'Ku 11.7 GHz · OneWeb',
-    src:'Ku 下行 10.7–12.7 GHz 分配 (A)；波束/功率代表值 (B)' },
+    src:'Ku 下行 10.7–12.7 GHz 分配 (A)；波束/功率代表值 (B)',
+    up:{ f:14.25e9, txPow_dBW:10*Math.log10(2), txGain_dBi:0, txFeed_dB:0.7,
+         txPol:'circular', mode:'QPSK', bitrate:2.0e6,
+         rx:{G:33, feed:0.8, NF:2.5, pol:'circular', hpbw:2.0, Tant_K:290},
+         label:'Ku 14.25 GHz · 使用者終端上行',
+         src:'ITU-R FSS Earth-to-space Ku 上行 14.0–14.5 GHz (A)；'
+            +'終端 0.7 m 天線 2 W (B)',
+         dish_m:0.7 } },
 
   leo_phased:{ f:11.7e9, txPow_dBW:10*Math.log10(4), txGain_dBi:35, txFeed_dB:0.8,
     txPol:'circular', mode:'QPSK', bitrate:100e6, hpbw:3.2, hiveRings:4,
     rx:{...dish(0.6, 11.7e9), feed:0.7, NF:1.6, pol:'circular'},
     color:0x7aa8ff, label:'Ku 11.7 GHz · Starlink 相位陣列',
-    src:'Ku 下行分配 (A)；FCC 申報之波束寬與功率量級 (B)' },
+    src:'Ku 下行分配 (A)；FCC 申報之波束寬與功率量級 (B)',
+    up:{ f:14.25e9, txPow_dBW:10*Math.log10(2), txGain_dBi:0, txFeed_dB:0.7,
+         txPol:'circular', mode:'QPSK', bitrate:4.0e6,
+         rx:{G:35, feed:0.8, NF:2.5, pol:'circular', hpbw:1.8, Tant_K:290},
+         label:'Ku 14.25 GHz · 相位陣列終端上行',
+         src:'ITU-R FSS Ku 上行 14.0–14.5 GHz，與 FCC 申報一致 (A)；'
+            +'終端等效口徑 0.6 m、2 W (B)',
+         dish_m:0.6 } },
 
   geo_spot:{ f:19.95e9, txPow_dBW:10*Math.log10(120), txGain_dBi:48, txFeed_dB:1.2,
     txPol:'circular', mode:'QPSK', bitrate:50e6, hpbw:0.55, hiveRings:10,
     rx:{...dish(0.75, 19.95e9), feed:0.8, NF:1.4, pol:'circular'},
     color:0xffc24d, label:'Ka 19.95 GHz · GEO 點波束',
-    src:'Ka 下行 17.7–21.2 GHz 分配 (A)；點波束 0.55° 為 HTS 常見值 (B)' }
+    src:'Ka 下行 17.7–21.2 GHz 分配 (A)；點波束 0.55° 為 HTS 常見值 (B)',
+    up:{ f:29.75e9, txPow_dBW:10*Math.log10(2), txGain_dBi:0, txFeed_dB:0.8,
+         txPol:'circular', mode:'QPSK', bitrate:5.0e6,
+         rx:{G:48, feed:1.0, NF:3.0, pol:'circular', hpbw:0.55, Tant_K:290},
+         label:'Ka 29.75 GHz · 使用者終端上行',
+         src:'ITU-R FSS Earth-to-space Ka 上行 27.5–30.0 GHz (A)；'
+            +'終端 0.75 m 天線 2 W (B)',
+         dish_m:0.75 } }
 };
 
-const GS = { name:'台北', lat:25.033, lon:121.565, alt:0.05 };  // km
+const GS = { name:'台北地面控制站', lat:25.033, lon:121.565, alt:0.05 };  // km
 
 /* ── 場景 ─────────────────────────────────────────────────── */
 const canvas = document.getElementById('gl');
@@ -559,6 +631,7 @@ ctl.addEventListener('start', () => {
 /* 螢幕空間最近點選取。對 Points 而言比 raycast 穩定 —— raycast 需要設
    Points.threshold，且會隨相機距離失準。 */
 const _pv = new THREE.Vector3();
+const _tmpv2 = new THREE.Vector3();
 function pickSatellite(ndcX, ndcY, maxPx, w, h){
   let best=-1, bestD=maxPx*maxPx;
   for(let i=0;i<SATS.length;i++){
@@ -628,12 +701,26 @@ function updateAstro(){
 }
 
 /* ── 地面站 ────────────────────────────────────────────────── */
+/* 地面站原本只是一顆 0.055 單位的小球加一個細圈 —— 在整顆地球（半徑 6.378 單位）
+   的尺度下幾乎看不見，使用者會以為「沒有地面站」。這裡改成：
+     · 放大標記並加一道朝天頂的立柱，遠看就有可辨識的形狀
+     · 兩層同心圈，外圈較淡，模仿雷達站的視覺語彙
+     · 掛一個永遠面向鏡頭的標籤，寫出站名
+   標籤 depthTest:false 會穿過地球，所以每幀依幾何遮蔽自行決定顯示與否。 */
 const gsGroup = new THREE.Group(); scene.add(gsGroup);
-const gsMark = new THREE.Mesh(new THREE.SphereGeometry(0.055,16,12),
-  new THREE.MeshBasicMaterial({color:0xff5ec8}));
-const gsRing = new THREE.Mesh(new THREE.RingGeometry(0.09,0.115,48),
-  new THREE.MeshBasicMaterial({color:0xff5ec8,side:THREE.DoubleSide,transparent:true,opacity:0.75}));
-gsGroup.add(gsMark, gsRing);
+const GS_COL = 0xff5ec8;
+const gsMark = new THREE.Mesh(new THREE.SphereGeometry(0.085,18,14),
+  new THREE.MeshBasicMaterial({color:GS_COL}));
+const gsRing = new THREE.Mesh(new THREE.RingGeometry(0.15,0.185,48),
+  new THREE.MeshBasicMaterial({color:GS_COL,side:THREE.DoubleSide,transparent:true,opacity:0.85}));
+const gsRing2 = new THREE.Mesh(new THREE.RingGeometry(0.28,0.30,64),
+  new THREE.MeshBasicMaterial({color:GS_COL,side:THREE.DoubleSide,transparent:true,opacity:0.35}));
+const gsMast = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.42,8),
+  new THREE.MeshBasicMaterial({color:GS_COL,transparent:true,opacity:0.9}));
+gsGroup.add(gsMark, gsRing, gsRing2, gsMast);
+const gsLabel = labelSprite(GS.name, GS_COL);
+gsLabel.scale.multiplyScalar(0.42);
+gsGroup.add(gsLabel);
 
 /* ── 動態物件 ──────────────────────────────────────────────── */
 const trailMat = new THREE.LineBasicMaterial({color:0x5ff0c8,transparent:true,opacity:0.55});
@@ -644,8 +731,52 @@ const fpLine = new THREE.LineLoop(new THREE.BufferGeometry(),
   new THREE.LineBasicMaterial({color:0x5ff0c8,transparent:true,opacity:0.65})); scene.add(fpLine);
 const beamEllipse = new THREE.LineLoop(new THREE.BufferGeometry(),
   new THREE.LineBasicMaterial({color:0xffc24d,transparent:true,opacity:0.95})); scene.add(beamEllipse);
+/* 下行（衛星 → 地面）與上行（地面 → 衛星）分開畫。
+   用虛線並讓 dashOffset 以相反方向流動，方向感不必靠箭頭就看得出來。 */
 const linkLine = new THREE.Line(new THREE.BufferGeometry(),
-  new THREE.LineBasicMaterial({color:0x5ff0c8,transparent:true,opacity:0.9})); scene.add(linkLine);
+  new THREE.LineDashedMaterial({color:0x5ff0c8,transparent:true,opacity:0.9,
+    dashSize:0.28,gapSize:0.20})); scene.add(linkLine);
+const upLine = new THREE.Line(new THREE.BufferGeometry(),
+  new THREE.LineDashedMaterial({color:0xffc24d,transparent:true,opacity:0.9,
+    dashSize:0.28,gapSize:0.20})); scene.add(upLine);
+upLine.visible=false;
+
+/* 沿路徑移動的封包點。WebGL 的線寬永遠是 1px（linewidth 在多數平台被忽略），
+   細虛線在幾千公里的尺度下讀不出流向，所以另外用會跑的點來表示方向。
+   這是純視覺輔助，不代表任何物理量 —— 點的間距與速度都不對應真實位元率。 */
+const PKT_N = 5;
+function makePackets(hex){
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(PKT_N*3), 3));
+  const m = new THREE.PointsMaterial({color:hex, size:7, sizeAttenuation:false,
+    transparent:true, opacity:0.95, depthWrite:false});
+  const pts = new THREE.Points(g, m); pts.frustumCulled=false; pts.visible=false;
+  scene.add(pts); return pts;
+}
+const pktDown = makePackets(0x5ff0c8);
+const pktUp   = makePackets(0xffc24d);
+/* 端點存起來，讓封包的更新與鏈路計算解耦（鏈路每幀算，封包每幀走） */
+const _pkA = new THREE.Vector3(), _pkB = new THREE.Vector3();
+const _pkUpA = new THREE.Vector3(), _pkUpB = new THREE.Vector3();
+let pktLive = false;
+function updatePackets(nowMs){
+  pktDown.visible = pktUp.visible = false;
+  if(!pktLive) return;
+  const t = (nowMs*0.00016) % 1;
+  for(const [pts, from, to] of [[pktDown,_pkA,_pkB],[pktUp,_pkUpA,_pkUpB]]){
+    if(!pts.parent) continue;
+    const a = pts.geometry.attributes.position;
+    for(let i=0;i<PKT_N;i++){
+      const u = (t + i/PKT_N) % 1;
+      a.array[i*3]   = from.x + (to.x-from.x)*u;
+      a.array[i*3+1] = from.y + (to.y-from.y)*u;
+      a.array[i*3+2] = from.z + (to.z-from.z)*u;
+    }
+    a.needsUpdate = true;
+  }
+  pktDown.visible = linkLine.visible;
+  pktUp.visible   = upLine.visible;
+}
 
 let hiveOn=false, hiveLines=null, hiveFill=null, hiveKey='', hiveStat=null;
 const beamMat = new THREE.MeshBasicMaterial({color:0xffc24d,transparent:true,opacity:0.11,
@@ -1329,8 +1460,19 @@ function frame(){
   // 地面站：在 ellip 群組的 local 空間表示（該群組已套用 gmst 旋轉與扁率縮放）
   const gsEcf = satellite.geodeticToEcf(gsGd);
   gsGroup.position.set(gsEcf.x/U, gsEcf.z/U/FLAT, -gsEcf.y/U);
-  gsRing.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),
-    gsGroup.position.clone().normalize());
+  const gsUp = gsGroup.position.clone().normalize();
+  gsRing.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), gsUp);
+  gsRing2.quaternion.copy(gsRing.quaternion);
+  gsMast.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), gsUp);
+  gsMast.position.copy(gsUp).multiplyScalar(0.21);
+  gsLabel.position.copy(gsUp).multiplyScalar(0.62);
+  {   // 標籤不寫深度，會穿透地球；用幾何遮蔽自行決定顯示
+    const wp = gsLabel.getWorldPosition(_tmpv2);
+    const dist = camera.position.distanceTo(wp);
+    const k = dist*0.030;
+    gsLabel.scale.set(gsLabel.userData.aspect*k, k, 1);
+    gsLabel.visible = !occludedByEarth(wp) && dist < 260;
+  }
   const gsP = gsEci(gmst), gsV = obsVel(gsP);
 
   const updHud  = (nowReal-hudT)  > 100;
@@ -1386,6 +1528,12 @@ function frame(){
 
   fpsN++; const fnow=performance.now();
   if(fnow-fpsT>1000){ fpsV=fpsN*1000/(fnow-fpsT); fpsN=0; fpsT=fnow; }
+  // 虛線流動方向即訊號流向：下行往地面跑，上行往衛星跑
+  const dashT = nowReal * 0.0009;
+  if(linkLine.visible) linkLine.material.dashOffset = -dashT;
+  if(upLine.visible)   upLine.material.dashOffset   =  dashT;
+  updatePackets(nowReal);
+
   applyClip();
   followFocus();
   updateRoam();
@@ -1515,18 +1663,70 @@ function updateSelected(gmst, gsP, gsV, su, updHud){
     bitrate_bps:prof.bitrate, mode:prof.mode, txPol:prof.txPol, rxPol:prof.rx.pol,
     rxHpbw_deg:prof.rx.hpbw
   });
+  /* 上行（地面 → 衛星）。與下行是不同的頻率、不同的天線、不同的雜訊環境：
+       · 頻率不同 → FSPL、氣體/雨衰、法拉第旋轉全部要重算
+       · 接收端在衛星上，天線朝地 → 天線雜訊溫度是地球的 ~290 K，不是冷天空
+       · 有些系統根本沒有使用者上行（GNSS、氣象廣播），那就照實不畫、不算 */
+  const up = prof.up;
+  const uTx = upTx(up);
+  const lbUp = up ? PHY.linkBudget({
+    f_Hz:up.f, range_m:rng_km*1000, el_deg:el,
+    txPow_dBW:up.txPow_dBW, txGain_dBi:uTx.G, txFeed_dB:up.txFeed_dB,
+    rxGain_dBi:up.rx.G, rxFeed_dB:up.rx.feed, rxNF_dB:up.rx.NF,
+    bitrate_bps:up.bitrate, mode:up.mode, txPol:up.txPol, rxPol:up.rx.pol,
+    rxHpbw_deg:up.rx.hpbw, Tant_K:up.rx.Tant_K
+  }) : null;
+  /* 對照組：同一條鏈路但天線雜訊溫度改用天空值。只為了在介面上如實顯示
+     「這個假設差多少 dB」，不參與任何實際顯示的鏈路數字。
+     注意差值**會換號**：銀河背景與地球 290 K 的交越點在 231.7 MHz，
+     低於它（如 ARISS 145.99 MHz，天空約 1019 K）朝地反而比較安靜。 */
+  const lbUpSky = up ? PHY.linkBudget({
+    f_Hz:up.f, range_m:rng_km*1000, el_deg:el,
+    txPow_dBW:up.txPow_dBW, txGain_dBi:uTx.G, txFeed_dB:up.txFeed_dB,
+    rxGain_dBi:up.rx.G, rxFeed_dB:up.rx.feed, rxNF_dB:up.rx.NF,
+    bitrate_bps:up.bitrate, mode:up.mode, txPol:up.txPol, rxPol:up.rx.pol,
+    rxHpbw_deg:up.rx.hpbw
+  }) : null;
+  const dopUp = up ? PHY.doppler_Hz(up.f, rr*1000) : null;
+
   const visible = el >= 5;
   const ok = visible && lb.margin > 0;
+  const okUp = visible && lbUp && lbUp.margin > 0;
 
+  /* 兩條路徑幾何上重疊，錯開一點才看得出是兩條；
+     位移量隨距離縮放，遠看不會糊成一條、近看也不會誇張。 */
+  const A = toScene(p), B = toScene(gsP);
+  const seg = new THREE.Vector3().subVectors(B, A);
+  // 兩條路徑幾何上完全重合，位移量要夠大才看得出是兩條；
+  // 隨距離縮放並設下限，遠距不會糊成一條、近距也不會誇張到不像同一條鏈路。
+  const nOff = new THREE.Vector3().crossVectors(seg, camera.position.clone().sub(A))
+                 .normalize().multiplyScalar(Math.max(0.05, seg.length()*0.035));
   linkLine.visible = visible;
   if(visible){
     linkLine.geometry.dispose();
-    linkLine.geometry=new THREE.BufferGeometry().setFromPoints([toScene(p), toScene(gsP)]);
+    linkLine.geometry=new THREE.BufferGeometry().setFromPoints(
+      [A.clone().add(nOff), B.clone().add(nOff)]);
+    linkLine.computeLineDistances();
     linkLine.material.color.setHex(ok?0x5ff0c8:0xff6b6b);
-    linkLine.material.opacity = ok?0.9:0.4;
+    linkLine.material.opacity = ok?0.95:0.4;
   }
+  _pkA.copy(A).add(nOff); _pkB.copy(B).add(nOff);   // 下行封包走這條（含位移）
+  pktLive = visible;
+  upLine.visible = visible && !!up;
+  if(upLine.visible){
+    upLine.geometry.dispose();
+    upLine.geometry=new THREE.BufferGeometry().setFromPoints(
+      [B.clone().sub(nOff), A.clone().sub(nOff)]);
+    upLine.computeLineDistances();
+    upLine.material.color.setHex(okUp?0xffc24d:0xff6b6b);
+    upLine.material.opacity = okUp?0.95:0.4;
+    _pkUpA.copy(B).sub(nOff); _pkUpB.copy(A).sub(nOff);
+  }
+  pktDown.material.color.setHex(ok?0x5ff0c8:0xff6b6b);
+  pktUp.material.color.setHex(okUp?0xffc24d:0xff6b6b);
 
-  if(updHud) hud(s, {el,az,rng_km,alt_km,rr}, lb, visible, ok, wantHive?hiveStat:null);
+  if(updHud) hud(s, {el,az,rng_km,alt_km,rr}, lb, visible, ok, wantHive?hiveStat:null,
+                   {up, lbUp, lbUpSky, okUp, dopUp, uTx});
 }
 
 /* 視野尺度：把相機拉到能看見該層級的距離（方向沿用目前視線） */
@@ -1580,7 +1780,7 @@ const $ = id => document.getElementById(id);
 const set = (id, txt, cls='') => { const n=$(id); n.textContent=txt; n.className='v '+cls; };
 const f = (x,n=1) => (x==null||Number.isNaN(x)) ? '—' : x.toFixed(n);
 
-function hud(s, g, lb, visible, ok, hive){
+function hud(s, g, lb, visible, ok, hive, U2){
   const prof=s.prof;
   $('selName').textContent = s.name;
   $('selSub').textContent  = prof.label + ' · ' + lb.modeName;
@@ -1603,6 +1803,52 @@ function hud(s, g, lb, visible, ok, hive){
       !visible?'':(lb.margin>6?'g':lb.margin>0?'w':'b'));
   $('v_bar').style.width = visible ? Math.max(0,Math.min(100,(lb.margin+10)/35*100))+'%' : '0%';
 
+  /* ── 上行 ──────────────────────────────────────────────
+     有些系統照實就是沒有使用者上行（GNSS 純接收、氣象衛星是單向廣播）。
+     那種情況不畫、不算、也不填假數字，直接說明原因 —— 比留一排「—」誠實。 */
+  const up = U2 && U2.up, lbUp = U2 && U2.lbUp;
+  if(up && lbUp){
+    $('sec_up').style.opacity = '1';
+    set('u_band', up.label.split(' · ')[0]);
+    set('u_eirp', f(lbUp.EIRP,1)+' dBW');
+    const du = U2.dopUp;
+    set('u_dop', (du>0?'+':'')+f(Math.abs(du)>=1000?du/1000:du, Math.abs(du)>=1000?2:0)
+         + (Math.abs(du)>=1000?' kHz':' Hz'));
+    set('u_fspl', f(lbUp.FSPL,1)+' dB');
+    set('u_atm',  f(lbUp.A_gas+lbUp.A_rain+lbUp.L_pol,2)+' dB');
+    set('u_gt',   f(lbUp.GT,1)+' dB/K');
+    set('u_cn0',  visible? f(lbUp.CN0,1)+' dB-Hz' : '無視線', visible?'':'b');
+    set('u_marg', visible? (lbUp.margin>0?'+':'')+f(lbUp.margin,1)+' dB' : '—',
+        !visible?'':(lbUp.margin>6?'g':lbUp.margin>0?'w':'b'));
+    $('u_bar').style.width = visible ? Math.max(0,Math.min(100,(lbUp.margin+10)/35*100))+'%' : '0%';
+    /* 這個差值一定要當場算，不能寫死一個「大概幾 dB」。
+       它隨頻率變化很大：VHF 的銀河雜訊本來就有數百 K，朝地與朝天差不了多少；
+       Ku/Ka 的冷天空只有十幾 K，差距才明顯。實測 Starlink Ku 上行是 2.5 dB。 */
+    const dGT = (U2.lbUpSky ? U2.lbUpSky.GT - lbUp.GT : null);
+    $('u_note').innerHTML =
+      `${up.label}<br>${up.src}<br>`+
+      `<span style="color:#ffc24d">星上接收天線朝地，天線雜訊溫度取地球亮度溫度 ${up.rx.Tant_K} K，`+
+      `不是冷天空。</span>`+
+      (dGT!==null ? `　若改用天空雜訊溫度（${f(U2.lbUpSky.Tsky,0)} K）會把此鏈路的 G/T `+
+        `<b>${dGT>=0?'高估':'低估'} ${f(Math.abs(dGT),1)} dB</b>`+
+        `（T_sys ${f(lbUp.Tsys,0)} K → ${f(U2.lbUpSky.Tsys,0)} K）。`+
+        (dGT<0 ? `此頻率的銀河背景比地球還吵（交越點 231.7 MHz），朝地反而較安靜。` : '') : '');
+  } else {
+    $('sec_up').style.opacity = '0.55';
+    for(const k of ['u_band','u_eirp','u_dop','u_fspl','u_atm','u_gt','u_cn0','u_marg']) set(k,'—');
+    $('u_bar').style.width='0%';
+    $('u_note').innerHTML = `<span style="color:#ffc24d">此系統沒有使用者上行。</span><br>`+
+      (s.prof.upNote || '');
+  }
+
+  /* ── 地面站 ──────────────────────────────────────────── */
+  set('g_name', GS.name);
+  set('g_pos', `${Math.abs(GS.lat).toFixed(3)}°${GS.lat>=0?'N':'S'} `+
+               `${Math.abs(GS.lon).toFixed(3)}°${GS.lon>=0?'E':'W'} · ${(GS.alt*1000).toFixed(0)} m`);
+  set('g_ant', up ? (up.dish_m ? `${up.dish_m} m 碟型 · ${f(U2.uTx.G,1)} dBi @ ${(up.f/1e9).toFixed(2)} GHz`
+                               : `${f(U2.uTx.G,1)} dBi · ${f(up.txPow_dBW,1)} dBW`)
+                  : '—（此系統無上行）');
+
   // TLE 年齡與不確定度
   const ep = s.rec.jdsatepoch + (s.rec.jdsatepochF||0);
   const jdNow = simTime.getTime()/86400000 + 2440587.5;
@@ -1621,6 +1867,13 @@ function hud(s, g, lb, visible, ok, hive){
     `<b>損耗</b> Friis FSPL · ITU-R P.676 氣體 · P.618 雨衰 · P.372 天電雜訊<br>`+
     `<b>雜訊</b> T_sky=${f(lb.Tsky,0)} K · T_sys=${f(lb.Tsys,0)} K · G/T=${f(lb.GT,1)} dB/K<br>`+
     `<b>電離層</b> 法拉第旋轉 ${f(lb.faraday_deg,0)}° (TEC=20 TECU 代表值)<br>`+
+    // 全向或寬波束天線不該畫出指向性光束，畫了就是假的。但介面沉默會讓人以為壞了，
+    // 所以照實說明為什麼沒有錐體，以及它實際的輻射樣態。
+    (prof.hpbw >= 20
+      ? `<b>天線樣態</b> 發射半功率波束寬 ${f(prof.hpbw,0)}°，屬寬波束／近全向 —— `+
+        `<span style="color:#ffc24d">不畫波束錐</span>，因為它不是指向性光束；`+
+        `畫面上的虛線是傳播路徑，不是波束形狀。<br>`
+      : `<b>天線樣態</b> 發射半功率波束寬 ${f(prof.hpbw,1)}°，指向性波束，錐體為真實張角。<br>`)+
     (hive ? `<b>蜂巢</b> ${hive.drawn} 個點波束 · 間距 ${hive.spacing_deg}° (=HPBW，交越 −3 dB) · 四色頻率重用<br>`+
      `<span style="color:#ffc24d">蜂巢為幾何示範：真實系統只覆蓋服務區，且各波束指向由營運商規劃，非機械填滿。</span><br>` : '')+
     (modelsOn && exagg>1 ? `<b>本體模型</b> three.js 程序生成 · 姿態 LVLH(+Z 對地) + 太陽翼單軸追日 · <span style="color:#ffc24d">圖示放大約 ×${Math.round(exagg).toLocaleString()}，非真實比例</span><br>` : '')+

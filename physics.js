@@ -126,7 +126,7 @@ export function linkBudget(o){
   const { f_Hz, range_m, el_deg, txPow_dBW, txGain_dBi, txFeed_dB,
           rxGain_dBi, rxFeed_dB, rxNF_dB, bitrate_bps, mode,
           rainRate_mmh=0, tec_TECU=20, txPol='circular', rxPol='linear',
-          pointErr_deg=0, rxHpbw_deg=60 } = o;
+          pointErr_deg=0, rxHpbw_deg=60, Tant_K=null } = o;
 
   const EIRP   = txPow_dBW + txGain_dBi - txFeed_dB;
   const FSPL   = fspl_dB(range_m, f_Hz);
@@ -137,7 +137,18 @@ export function linkBudget(o){
   const L_pt   = 12*Math.pow(pointErr_deg/rxHpbw_deg,2);
   const L_tot  = FSPL + A_gas + A_rain + L_pol + L_pt;
 
-  const Tsky = skyNoiseTemp_K(f_Hz);
+  /* 天線雜訊溫度取決於「接收天線看向哪裡」，不是只看頻率：
+       下行 —— 地面天線朝天，看到的是天空（銀河背景 + 大氣輻射），用 skyNoiseTemp_K。
+       上行 —— 衛星天線朝地，整個視場被地球填滿，取亮度溫度 290 K
+               （陸面接近黑體，海面發射率較低，290 K 為保守值）。
+
+     方向的影響**不是單向的**，會隨頻率換號。以本檔的銀河模型
+     T = 60·(408/f_MHz)^2.75 計算，交越點在 **231.7 MHz**：
+       · 145.99 MHz（ARISS 上行）天空約 1019 K，比 290 K 的地球**還吵** —— 朝地反而較好
+       · 401.9 MHz 天空 68 K、14.25 GHz 天空 33 K —— 這時朝地才是比較差的一邊
+     所以不能寫死「朝地一定比較差」。呼叫端在上行時必須明確傳入 Tant_K，
+     這裡不替它猜，介面上的差值也一律當場算、不寫死。 */
+  const Tsky = (Tant_K === null) ? skyNoiseTemp_K(f_Hz) : Tant_K;
   const Tsys = sysNoiseTemp_K({Tant:Tsky, feedLoss_dB:rxFeed_dB, rxNF_dB});
   const GT   = rxGain_dBi - rxFeed_dB - 10*Math.log10(Tsys);
 

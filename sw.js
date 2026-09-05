@@ -4,7 +4,7 @@
    本來就不是即時串流，因此離線與線上結果一致 —— 這點必須誠實對使用者說明：
    離線可用不代表資料是即時的，TLE 年齡與星曆涵蓋期都顯示在介面上。
    版本號改動即觸發重新預快取並淘汰舊版。 */
-const VERSION = 'satlink-v1.12.0';
+const VERSION = 'satlink-v1.13.0';
 const CORE = [
   './',
   './index.html',

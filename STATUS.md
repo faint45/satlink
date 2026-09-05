@@ -1,8 +1,8 @@
 # SatLink 完成度狀態
 
-> 本檔由 `check.py` 產生於 2026-09-05 06:08:31 UTC，不手寫。每次執行都重跑驗證，不沿用上次結論。
+> 本檔由 `check.py` 產生於 2026-09-05 06:31:52 UTC，不手寫。每次執行都重跑驗證，不沿用上次結論。
 
-**16 通過 · 1 失敗 · 3 未執行**
+**22 通過 · 0 失敗 · 0 未執行**
 
 
 ## 部署
@@ -10,12 +10,13 @@
 | 項目 | 結果 | 說明 |
 |---|---|---|
 | Service Worker 預快取清單與實際檔案一致 | ✅ PASS | 32 項；缺少 無 |
-| SW 版本號 | ✅ PASS | satlink-v1.12.0 |
+| SW 版本號 | ✅ PASS | satlink-v1.13.0 |
 | 大小與檔數在 Cloudflare Pages 限制內 | ✅ PASS | 33 檔 / 7.2 MB |
 | rebuild_data.py 存在 | ✅ PASS |  |
 | validation/test_frames.mjs 存在 | ✅ PASS |  |
 | validation/test_render_invariants.mjs 存在 | ✅ PASS |  |
 | validation/test_cam_geodesy.mjs 存在 | ✅ PASS |  |
+| validation/test_uplink.mjs 存在 | ✅ PASS |  |
 
 ## 資料
 
@@ -40,25 +41,26 @@
 | 座標框架回歸測試（IAU 1976 歲差） | ✅ PASS | 7 通過 / 0 失敗 |
 | 渲染不變式回歸測試（深度緩衝） | ✅ PASS | 11 通過 / 0 失敗 |
 | 攝影機標記大地座標回歸測試 | ✅ PASS | 8 通過 / 0 失敗 |
+| 上行鏈路（天線雜訊方向性） | ✅ PASS | 13 通過 / 0 失敗 |
 
 ## Validation
 
 | 項目 | 結果 | 說明 |
 |---|---|---|
-| SatNOGS 全球地面站幾何比對 | ⚠️ SKIP | --offline |
-| 都卜勒 vs Skyfield 獨立實作 | ⚠️ SKIP | --offline |
+| SatNOGS 全球地面站幾何比對 | ✅ PASS | 25 站；升起方位平均差 0.29°、最大仰角平均差 0.24°（SatNOGS 只報整數度，捨入即 ±0.5°） |
+| 都卜勒 vs Skyfield 獨立實作 | ✅ PASS | 擺幅 18,903 Hz；最大差 0.19 Hz（10.0 ppm） |
 
 ## 資料
 
 | 項目 | 結果 | 說明 |
 |---|---|---|
-| 即時影像抽樣複驗 | ⚠️ SKIP | --offline |
+| 即時影像抽樣複驗 | ✅ PASS | YouTube 抽 5 支 4 支仍在直播且可嵌入（下線屬正常）；公務攝影機抽 6 支 6 支取得到影像 |
 
 ## 接點
 
 | 項目 | 結果 | 說明 |
 |---|---|---|
-| stats API（線上人數／累積造訪） | ❌ FAIL | 本機 wrangler port 8791；0 通過 / 1 失敗 |
+| stats API（線上人數／累積造訪） | ✅ PASS | 正式站；13 通過 / 0 失敗 |
 
 ## 完成度分級
 
@@ -100,6 +102,7 @@
 | 深度緩衝穿透（衛星穿過地球） | ✅ `validation/test_render_invariants.mjs`（靜態釘住根因：對數深度緩衝與自訂 shader 的相容性、near/far 比、疊加層深度測試） |
 | 來源資料經緯度錯置 | ✅ bbox 檢核已寫進建置腳本 |
 | 即時影像地點錯置 | ✅ 標題關鍵字比對已寫進採集腳本 |
+| 上行鏈路的天線雜訊方向性（衛星天線朝地是 290 K，不是冷天空；且差值在 231.7 MHz 換號） | ✅ `validation/test_uplink.mjs`（13 項：Tant_K 行為、交越點、換號方向、各類別上行資料完整性） |
 | 攝影機標記被壓向赤道（`e² = 1−(1−FLAT)²` 誤用扁率，日月潭 23.85°N 落到 0.01°，雷克雅維克偏 7,138 km） | ✅ `validation/test_cam_geodesy.mjs`（151 個據點逐點大地座標往返，逆算用 Bowring 法獨立推導；已實測把舊式子放回去會失敗 4 項） |
 
 > 深度穿透屬於要 GPU 才看得出來的問題，命令列無法做像素比對。

@@ -44,7 +44,8 @@ def check_files():
 
     for f in ['rebuild_data.py', 'validation/test_frames.mjs',
               'validation/test_render_invariants.mjs',
-              'validation/test_cam_geodesy.mjs']:
+              'validation/test_cam_geodesy.mjs',
+              'validation/test_uplink.mjs']:
         rec('部署', f'{f} 存在', os.path.exists(os.path.join(ROOT, f)), '')
 
     for f, key in [('tle_cache.json','sats'), ('stars.json','n'),
@@ -264,10 +265,12 @@ def check_node_tests():
     if not node:
         rec('回歸', '座標框架回歸測試', None, '未安裝 node')
         rec('回歸', '渲染不變式回歸測試', None, '未安裝 node')
-        rec('回歸', '攝影機標記大地座標回歸測試', None, '未安裝 node'); return
+        rec('回歸', '攝影機標記大地座標回歸測試', None, '未安裝 node')
+        rec('回歸', '上行鏈路（天線雜訊方向性）', None, '未安裝 node'); return
     for name, f in [('座標框架回歸測試（IAU 1976 歲差）', 'test_frames.mjs'),
                     ('渲染不變式回歸測試（深度緩衝）', 'test_render_invariants.mjs'),
-                    ('攝影機標記大地座標回歸測試', 'test_cam_geodesy.mjs')]:
+                    ('攝影機標記大地座標回歸測試', 'test_cam_geodesy.mjs'),
+                    ('上行鏈路（天線雜訊方向性）', 'test_uplink.mjs')]:
         path = os.path.join(ROOT, 'validation', f)
         if not os.path.exists(path):
             rec('回歸', name, None, '找不到 ' + f); continue
@@ -363,6 +366,7 @@ def write_status():
       "| 深度緩衝穿透（衛星穿過地球） | ✅ `validation/test_render_invariants.mjs`（靜態釘住根因：對數深度緩衝與自訂 shader 的相容性、near/far 比、疊加層深度測試） |",
       "| 來源資料經緯度錯置 | ✅ bbox 檢核已寫進建置腳本 |",
       "| 即時影像地點錯置 | ✅ 標題關鍵字比對已寫進採集腳本 |",
+      "| 上行鏈路的天線雜訊方向性（衛星天線朝地是 290 K，不是冷天空；且差值在 231.7 MHz 換號） | ✅ `validation/test_uplink.mjs`（13 項：Tant_K 行為、交越點、換號方向、各類別上行資料完整性） |",
       "| 攝影機標記被壓向赤道（`e² = 1−(1−FLAT)²` 誤用扁率，日月潭 23.85°N 落到 0.01°，雷克雅維克偏 7,138 km） | ✅ `validation/test_cam_geodesy.mjs`（151 個據點逐點大地座標往返，逆算用 Bowring 法獨立推導；已實測把舊式子放回去會失敗 4 項） |",
       "",
       "> 深度穿透屬於要 GPU 才看得出來的問題，命令列無法做像素比對。",
