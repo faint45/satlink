@@ -1776,7 +1776,21 @@ function selectMission(i){
 }
 
 /* ── HUD ───────────────────────────────────────────────────── */
-const $ = id => document.getElementById(id);
+/* 取元素。回傳一個安全代理：元素不存在時寫入無效，但不丟例外。
+
+   為什麼要這樣：index.html 與 app.js 是兩個獨立快取的檔案，Service Worker
+   更新期間一定存在「舊 HTML + 新 JS」的短暫視窗。實測就發生過 —— 新版的
+   hud() 直接寫 $('sec_up').style，舊 HTML 沒有那個元素，TypeError 直接
+   **殺死整個主迴圈**，畫面凍住。少一塊讀數是可以接受的降級，整站掛掉不是。 */
+const $ = id => document.getElementById(id) || _NULLEL;
+const _NULLEL = { style:{}, dataset:{}, classList:{add(){},remove(){},toggle(){},contains(){return false;}},
+                  set textContent(v){}, get textContent(){return '';},
+                  set innerHTML(v){},   get innerHTML(){return '';},
+                  set className(v){},   get className(){return '';},
+                  appendChild(){}, addEventListener(){}, removeEventListener(){},
+                  getBoundingClientRect(){return {width:0,height:0,left:0,right:0,top:0,bottom:0};},
+                  querySelector(){return null;}, querySelectorAll(){return [];},
+                  focus(){}, click(){}, _missing:true };
 const set = (id, txt, cls='') => { const n=$(id); n.textContent=txt; n.className='v '+cls; };
 const f = (x,n=1) => (x==null||Number.isNaN(x)) ? '—' : x.toFixed(n);
 

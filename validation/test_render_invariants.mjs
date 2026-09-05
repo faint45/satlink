@@ -131,5 +131,33 @@ const all = Object.values(src).join('\n');
             : '缺少 clearSurfaceView()，從清單點攝影機後將永遠留在地表視角');
 }
 
+/* 7. app.js 取用的每一個元素 id，都必須真的存在於 index.html。
+   釘住的 bug：加上行讀數時，新版 app.js 寫 $('sec_up').style.opacity，
+   但 Service Worker 更新期間瀏覽器可能是「舊 HTML + 新 JS」，
+   那個元素不存在 → TypeError → **整個主迴圈被殺掉**，畫面凍住。
+   已改成安全取元素當作最後防線，但根本問題是兩個檔案不同步，
+   這裡在部署前就把它擋下來。 */
+{
+  const app  = src['app.js'] || '';
+  const html = readFileSync(join(ROOT, 'prototype', 'index.html'), 'utf8');
+  const htmlIds = new Set([...html.matchAll(/\sid="([A-Za-z0-9_-]+)"/g)].map(m => m[1]));
+  // app.js 也會自己建元素（圖層鈕、搜尋框），那些 id 同樣算「存在」
+  for (const m of app.matchAll(/\.id\s*=\s*'([A-Za-z0-9_-]+)'/g)) htmlIds.add(m[1]);
+  for (const m of app.matchAll(/\sid="([A-Za-z0-9_-]+)"/g))        htmlIds.add(m[1]);
+  // 動態產生的 id（清單列、圖層鈕等）以字串拼接而成，這裡只查字面常數
+  const dynamic = /^(el\d+|sat|grp)/;
+  const used = [...app.matchAll(/\$\('([A-Za-z0-9_-]+)'\)/g)].map(m => m[1]);
+  const usedGet = [...app.matchAll(/getElementById\('([A-Za-z0-9_-]+)'\)/g)].map(m => m[1]);
+  const all = [...new Set([...used, ...usedGet])].filter(id => !dynamic.test(id));
+  const missing = all.filter(id => !htmlIds.has(id));
+  check('app.js 取用的元素 id 都存在於 index.html',
+    missing.length === 0,
+    missing.length ? `index.html 缺少：${missing.join(', ')}` : `${all.length} 個 id 全部對得上`);
+
+  const guarded = /const \$ = id => document\.getElementById\(id\) \|\| _NULLEL;/.test(app);
+  check('取元素有安全網（缺元素不會殺掉主迴圈）', guarded,
+    guarded ? '$() 回傳空物件代理而非 null' : '$() 直接回傳 getElementById，缺元素會丟 TypeError');
+}
+
 console.log(fails ? `\n${fails} 項失敗` : '\n全部通過');
 process.exit(fails ? 1 : 0);
