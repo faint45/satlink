@@ -279,24 +279,45 @@ def check_node_tests():
 
 # ── 7. stats API（需另外啟動 wrangler pages dev）──────────────
 def check_stats_api():
+    """優先驗**正式環境**，本機 wrangler 只是備援。
+
+    為什麼順序是這樣：這個接點的價值在於「線上那一份真的會回真數字」。
+    本機 D1（miniflare）只證明程式邏輯對，不證明部署後綁定正確 ——
+    實測就踩過一次：wrangler d1 create 建議的 binding 名是資料庫名，
+    照抄會讓 env.DB 是 undefined，Function 回 503，而畫面完全正常，
+    只是徽章靜默消失。那種錯只有打正式端點才抓得到。
+    """
     import urllib.request, urllib.error
-    for port in ('8791', '8790', '8788'):
+    PROD = 'https://satlink-4fy.pages.dev/api/stats'
+    target, label = None, ''
+    if not OFFLINE:
         try:
-            urllib.request.urlopen(f'http://127.0.0.1:{port}/api/stats', timeout=3).read(1)
-            break
-        except urllib.error.HTTPError:
-            break                      # 有回應即可（405/500 也代表服務在）
+            req = urllib.request.Request(PROD, headers={
+                'user-agent': 'satlink-validation/1.0 (+https://github.com/faint45/satlink)'})
+            urllib.request.urlopen(req, timeout=20).read(1)
+            target, label = PROD, '正式站'
         except Exception:
-            port = None
-    if not port:
+            target = None
+    if not target:
+        for port in ('8791', '8790', '8788'):
+            try:
+                urllib.request.urlopen(f'http://127.0.0.1:{port}/api/stats', timeout=3).read(1)
+                target, label = port, f'本機 wrangler port {port}'
+                break
+            except urllib.error.HTTPError:
+                target, label = port, f'本機 wrangler port {port}'
+                break
+            except Exception:
+                continue
+    if not target:
         rec('接點', 'stats API（線上人數／累積造訪）', None,
-            '未偵測到 wrangler pages dev；啟動後可跑 validation/test_stats_api.py')
+            '正式站連不上且未偵測到 wrangler pages dev')
         return
-    r = subprocess.run([sys.executable, os.path.join(ROOT,'validation','test_stats_api.py'), port],
+    r = subprocess.run([sys.executable, os.path.join(ROOT,'validation','test_stats_api.py'), str(target)],
                        capture_output=True, text=True, encoding='utf-8', errors='replace', cwd=ROOT)
     out = (r.stdout or '')
     rec('接點', 'stats API（線上人數／累積造訪）', r.returncode == 0,
-        f"port {port}；{out.count('✅')} 通過 / {out.count('❌')} 失敗")
+        f"{label}；{out.count('✅')} 通過 / {out.count('❌')} 失敗")
 
 # ── 產生 STATUS.md ──────────────────────────────────────────
 def write_status():
@@ -329,9 +350,13 @@ def write_status():
       "| 2 | JPL Horizons → 歲差修正 → 場景（同一框架） | ✅ |",
       "| 3 | 影像清單 → 地球標記 → 播放器（清單點擊與地球點擊都驗過） | ✅ |",
       "| 4 | Service Worker → 離線（29 項純快取取用測試通過） | ✅ |",
-      "| 5 | /api/stats → Cloudflare D1 | ⚠️ 程式碼已以本機 D1 完整驗證（13 項行為測試 + 端到端徽章顯示）；正式環境仍待帳號登入與 D1 建立 |",
-      "| 6 | Cloudflare Pages 部署 | ❌ 未通，需帳號 OAuth 授權 |",
-      "", "**4 / 6 通過**", "",
+      "| 5 | /api/stats → Cloudflare D1 | ✅ 正式站 13 項行為測試全過；徽章實測顯示真數字 |",
+      "| 6 | 對外部署 | ✅ 兩處並存：Cloudflare Pages（有計數）與 GitHub Pages（純靜態，徽章自動隱藏） |",
+      "", "**6 / 6 通過**", "",
+      "> 正式站 https://satlink-4fy.pages.dev/ ・ 備援 https://faint45.github.io/satlink/",
+      "> 接點 5 刻意優先打正式端點：本機 D1 只證明邏輯對，不證明部署後綁定正確。",
+      "> 實測踩過一次 —— `wrangler d1 create` 建議的 binding 名是資料庫名，照抄會讓",
+      "> `env.DB` 是 undefined、Function 回 503，而畫面完全正常，只有徽章靜默消失。", "",
       "## 已修 bug 的回歸釘樁", "",
       "| 修過的問題 | 釘樁 |", "|---|---|",
       "| J2000/TEME 座標框架不一致（0.38° 偏移） | ✅ `validation/test_frames.mjs`（7 項：恆等變換、保長度、保夾角、量值 0.3727°、方向性、單調性、JD 換算） |",

@@ -29,8 +29,13 @@ fails = []
 
 def call(method, body=None):
     data = json.dumps(body).encode() if body is not None else None
+    # 一定要帶 User-Agent：Cloudflare 的瀏覽器指紋檢查會把 Python-urllib 的
+    # 預設 UA 擋成 403（error code 1010），看起來像 API 壞掉，其實是被邊緣擋下。
+    # 這裡如實表明自己是驗證工具，不偽裝成瀏覽器。
     req = urllib.request.Request(BASE, data=data,
-        headers={'content-type': 'application/json'}, method=method)
+        headers={'content-type': 'application/json',
+                 'user-agent': 'satlink-validation/1.0 (+https://github.com/faint45/satlink)'},
+        method=method)
     try:
         r = urllib.request.urlopen(req, timeout=25)
         return r.status, json.loads(r.read())
