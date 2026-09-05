@@ -322,6 +322,26 @@ def check_stats_api():
     rec('接點', 'stats API（線上人數／累積造訪）', r.returncode == 0,
         f"{label}；{out.count('✅')} 通過 / {out.count('❌')} 失敗")
 
+def check_atmos_vs_itur():
+    """大氣衰減對照 ITU-R 參考實作。
+
+    補的是自評裡最大的缺口：軌道已對過 Vallado 官方測試向量、都卜勒已對過
+    Skyfield，唯獨鏈路預算沒有任何外部對照 —— 那正是「物理有效性」被壓在
+    6/10 的原因。這裡把大氣這一段接上 itur（ITU-R P.676/P.838 的獨立實作）。
+    """
+    if OFFLINE:
+        rec('Validation', '大氣衰減 vs ITU-R 參考實作', None, '--offline'); return
+    try:
+        import itur  # noqa: F401
+    except ImportError:
+        rec('Validation', '大氣衰減 vs ITU-R 參考實作', None,
+            '未安裝 itur（python -m pip install itur）'); return
+    r = subprocess.run([sys.executable, os.path.join(ROOT, 'validation', 'test_atmos_vs_itur.py')],
+                       capture_output=True, text=True, encoding='utf-8', errors='replace', cwd=ROOT)
+    out = (r.stdout or '')
+    rec('Validation', '大氣衰減 vs ITU-R 參考實作（P.676 / P.838）', r.returncode == 0,
+        f"{out.count('✅')} 通過 / {out.count('❌')} 失敗")
+
 # ── 產生 STATUS.md ──────────────────────────────────────────
 def write_status():
     npass=sum(1 for r in R if r[2]=='PASS'); nfail=sum(1 for r in R if r[2]=='FAIL')
@@ -366,6 +386,7 @@ def write_status():
       "| 深度緩衝穿透（衛星穿過地球） | ✅ `validation/test_render_invariants.mjs`（靜態釘住根因：對數深度緩衝與自訂 shader 的相容性、near/far 比、疊加層深度測試） |",
       "| 來源資料經緯度錯置 | ✅ bbox 檢核已寫進建置腳本 |",
       "| 即時影像地點錯置 | ✅ 標題關鍵字比對已寫進採集腳本 |",
+      "| 鏈路預算的大氣段無任何外部對照（自評「物理有效性」的主要扣分） | ✅ `validation/test_atmos_vs_itur.py`：對 ITU-R P.676 逐譜線與 P.838（itur 套件，獨立實作）。FSPL 2.8e−14 dB；氣體 ≤15 GHz 最大 0.044 dB、仰角 ≥20° 最大 0.008 dB；雨衰 γ_R 最大 1.22%、中位 0.02%。查表由 `calibrate_atmos.py` 從參考實作重建，可重跑。 |",
       "| 上行鏈路的天線雜訊方向性（衛星天線朝地是 290 K，不是冷天空；且差值在 231.7 MHz 換號） | ✅ `validation/test_uplink.mjs`（13 項：Tant_K 行為、交越點、換號方向、各類別上行資料完整性） |",
       "| 攝影機標記被壓向赤道（`e² = 1−(1−FLAT)²` 誤用扁率，日月潭 23.85°N 落到 0.01°，雷克雅維克偏 7,138 km） | ✅ `validation/test_cam_geodesy.mjs`（151 個據點逐點大地座標往返，逆算用 Bowring 法獨立推導；已實測把舊式子放回去會失敗 4 項） |",
       "",
@@ -377,7 +398,8 @@ def write_status():
 
 if __name__ == '__main__':
     check_files(); check_sgp4(); check_node_tests()
-    check_satnogs(); check_doppler(); check_cams(); check_stats_api()
+    check_satnogs(); check_doppler(); check_atmos_vs_itur()
+    check_cams(); check_stats_api()
     p,f,s = write_status()
     for c,n,st,note in R:
         print(f"  {'✅' if st=='PASS' else ('⚠️' if st=='SKIP' else '❌')} [{c}] {n} — {note}")
