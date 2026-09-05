@@ -96,5 +96,21 @@ const expectZ = (A/Math.sqrt(1 - 0.00669437999*Math.sin(mid.lat*d2r)**2) * (1-0.
 t('z 分量未被壓向赤道（舊 bug 的特徵）', Math.abs(vz - expectZ) < 1e-6,
   `${mid.zh} z = ${vz.toFixed(3)} km（理論 ${expectZ.toFixed(3)} km）`);
 
+// 5. 分洲：每一個據點都要落在已知的洲，不能有人被丟進「其他」而沒被發現
+{
+  const unknown = [];
+  const tally = {};
+  for(const c of cams){
+    const r = mod.camRegion(c);
+    tally[r] = (tally[r] || 0) + 1;
+    if(r === '其他') unknown.push(`${c.zh}（${mod.camCountry(c) || '無國名'}）`);
+  }
+  t('每一個據點都對應到已知的洲', unknown.length === 0,
+    unknown.length ? `未對應：${unknown.slice(0,6).join('、')}` :
+      mod.REGION_ORDER.filter(r=>tally[r]).map(r=>`${r} ${tally[r]}`).join('　'));
+  const sum = Object.values(tally).reduce((a,b)=>a+b,0);
+  t('分洲後總數與清單一致（無遺漏或重複）', sum === cams.length, `${sum} / ${cams.length}`);
+}
+
 console.log(`\n${pass} 通過 / ${fail} 失敗`);
 process.exit(fail ? 1 : 0);

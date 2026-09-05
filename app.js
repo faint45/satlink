@@ -1083,67 +1083,119 @@ const GROUP_META = {
 const openGroups = new Set(['stations','weather','geo']);
 let filterText = '';
 
+/* 左側清單分成兩個可收合的大區：太空、世界知名景點。
+   為什麼要分：原本是把「即時影像 → 太空探索 → 各衛星群組」平鋪成一長串，
+   看風景的人要捲過 619 顆衛星，看衛星的人要捲過 151 個攝影機，兩邊都不好用。
+   兩個大區各自收合之後，你要看什麼就只展開那一邊。 */
+const SECTION_META = {
+  space: ['太空',       'TLE·星曆驅動'],
+  earth: ['世界知名景點', '公開即時影像']
+};
+let openSections = new Set(['earth']);   // 預設展開景點：這個站最常被拿來看風景
+
+function secHead(key, n, forced){
+  const [title, sub] = SECTION_META[key];
+  const open = forced || openSections.has(key);
+  return `<div class="lsec stog${open?' open':''}" data-s="${key}">`+
+         `<b>${open?'▾':'▸'}</b>${title}<span class="cnt">${n}</span><i>${sub}</i></div>`;
+}
+
 function buildList(){
   const host = document.getElementById('satlist');
+  const q = filterText;
   let html = '';
+
+  // ── 世界知名景點 ───────────────────────────────────────
   if(camsOn && camsReady){
-    const list = CAMS.camList();
-    const q = filterText;
-    const rows = list.map((c,i)=>[c,i]).filter(([c])=> !q ||
+    const rows = CAMS.camList().map((c,i)=>[c,i]).filter(([c])=> !q ||
         (c.zh+' '+(c.place||'')+' '+(c.title||'')).toLowerCase().includes(q));
-    if(rows.length){
-      // 來源已不只 YouTube（政府公務攝影機佔多數），標題如實反映實際組成
-      const nGov = rows.filter(([c])=>c.kind==='snapshot'||c.kind==='mjpeg').length;
-      const nYt  = rows.length - nGov;
-      const src  = nGov && nYt ? `公務攝影機 ${nGov} · YouTube 直播 ${nYt}`
-                 : nGov       ? `公務攝影機 ${nGov}`
-                              : `YouTube 直播 ${nYt}`;
-      html += `<div class="grp">即時影像<span class="cnt">${rows.length}</span><i>${src}</i></div>`;
-      for(const [c,i] of rows){
-        const col = (CAMS.KIND_COLOR[c.kind]||0x6ee7a8).toString(16).padStart(6,'0');
-        html += `<div class="sat cam" data-c="${i}"><span class="dot" style="color:#${col};`+
-          `background:currentColor"></span><span class="nm">${c.zh}</span>`+
-          `<span class="el">${CAMS.KIND_LABEL[c.kind]||'影像'}</span></div>`;
+    // 搜尋時強制展開，否則打了字卻看不到結果
+    const open = openSections.has('earth') || !!q;
+    html += secHead('earth', rows.length, !!q);
+    if(open && rows.length){
+      const byRegion = new Map(CAMS.REGION_ORDER.map(r=>[r,[]]));
+      for(const r of rows) byRegion.get(CAMS.camRegion(r[0])).push(r);
+      for(const region of CAMS.REGION_ORDER){
+        const list = byRegion.get(region);
+        if(!list.length) continue;
+        list.sort((a,b)=> CAMS.camKindRank(a[0])-CAMS.camKindRank(b[0])
+                       || a[0].zh.localeCompare(b[0].zh,'zh-Hant'));
+        const gk = 'rg_'+region;
+        const gopen = openGroups.has(gk) || !!q;
+        const nScenic = list.filter(([c])=>c.kind==='scenic').length;
+        html += `<div class="grp gtog sub" data-g="${gk}">${gopen?'▾':'▸'} ${region}`+
+                `<span class="cnt">${list.length}</span>`+
+                `<i>${nScenic?`風景 ${nScenic}`:''}</i></div>`;
+        if(!gopen) continue;
+        for(const [c,i] of list){
+          const col = (CAMS.KIND_COLOR[c.kind]||0x6ee7a8).toString(16).padStart(6,'0');
+          html += `<div class="sat cam sub" data-c="${i}"><span class="dot" style="color:#${col};`+
+            `background:currentColor"></span><span class="nm">${c.zh}</span>`+
+            `<span class="el">${CAMS.KIND_LABEL[c.kind]||'影像'}</span></div>`;
+        }
+      }
+    } else if(open){
+      html += '<div class="more sub">查無符合的據點</div>';
+    }
+  }
+
+  // ── 太空 ───────────────────────────────────────────────
+  {
+    const groups = [];
+    let nTotal = 0;
+    if(dsOn && dsReady){
+      const snap = DS.missionPositions(simTime);
+      const shown = snap.map((o,i)=>[o,i])
+        .filter(([o])=>o.covered && (!q || (o.name+' '+(o.note||'')).toLowerCase().includes(q)))
+        .sort((a,b)=>a[0].dist_km-b[0].dist_km);
+      if(shown.length){
+        nTotal += shown.length;
+        groups.push({key:'ds', title:'太空探索任務', sub:'JPL Horizons 星曆', n:shown.length,
+          rows:()=>shown.map(([o,i])=>{
+            const st = DS.KIND_STYLE[o.kind] || DS.KIND_STYLE.deep;
+            return `<div class="sat msn sub" data-m="${i}"><span class="dot" style="color:#`+
+              `${st.color.toString(16).padStart(6,'0')};background:currentColor"></span>`+
+              `<span class="nm">${o.name}</span>`+
+              `<span class="el">${DS.fmtDist(o.dist_km).split('（')[0]}</span></div>`;}).join('')});
+      }
+    }
+    for(const g of Object.keys(GROUP_META)){
+      const [title, sub] = GROUP_META[g];
+      let list = SATS.filter(s=>s.group===g);
+      if(q) list = list.filter(s=>s.name.toLowerCase().includes(q));
+      if(!list.length) continue;
+      nTotal += list.length;
+      groups.push({key:g, title, sub, n:list.length, rows:()=>{
+        const shown = list.slice(0, 200);
+        let h = shown.map(s=>{
+          const i = SATS.indexOf(s);
+          return `<div class="sat sub" data-i="${i}"><span class="dot" style="color:#`+
+            `${s.prof.color.toString(16).padStart(6,'0')};background:currentColor"></span>`+
+            `<span class="nm">${s.name}</span><span class="el" id="el${i}">—</span></div>`;
+        }).join('');
+        if(list.length>shown.length)
+          h += `<div class="more sub">…另有 ${list.length-shown.length} 顆，請用搜尋縮小範圍</div>`;
+        return h;
+      }});
+    }
+    if(groups.length){
+      const open = openSections.has('space') || !!q;
+      html += secHead('space', nTotal, !!q);
+      if(open) for(const gr of groups){
+        const gopen = openGroups.has(gr.key) || !!q;
+        html += `<div class="grp gtog sub" data-g="${gr.key}">${gopen?'▾':'▸'} ${gr.title}`+
+                `<span class="cnt">${gr.n}</span><i>${gr.sub}</i></div>`;
+        if(gopen) html += gr.rows();
       }
     }
   }
-  if(dsOn && dsReady){
-    const snap = DS.missionPositions(simTime);
-    const shown = snap.filter(o=>o.covered && (!filterText ||
-      (o.name+' '+(o.note||'')).toLowerCase().includes(filterText)));
-    if(shown.length)
-      html += `<div class="grp">太空探索任務<span class="cnt">${shown.length}</span><i>JPL Horizons 星曆</i></div>`;
-    const order = snap.map((o,i)=>[o,i])
-                      .filter(([o])=>o.covered && (!filterText ||
-                        (o.name+' '+(o.note||'')).toLowerCase().includes(filterText)))
-                      .sort((a,b)=>a[0].dist_km-b[0].dist_km);
-    for(const [o,i] of order){
-      const st = DS.KIND_STYLE[o.kind] || DS.KIND_STYLE.deep;
-      html += `<div class="sat msn" data-m="${i}"><span class="dot" style="color:#`+
-        `${st.color.toString(16).padStart(6,'0')};background:currentColor"></span>`+
-        `<span class="nm">${o.name}</span><span class="el">${DS.fmtDist(o.dist_km).split('（')[0]}</span></div>`;
-    }
-  }
-  for(const g of Object.keys(GROUP_META)){
-    const [title, sub] = GROUP_META[g];
-    let list = SATS.filter(s=>s.group===g);
-    if(filterText) list = list.filter(s=>s.name.toLowerCase().includes(filterText));
-    if(!list.length) continue;
-    const open = openGroups.has(g) || !!filterText;
-    html += `<div class="grp gtog" data-g="${g}">${open?'▾':'▸'} ${title}`+
-            `<span class="cnt">${list.length}</span><i>${sub}</i></div>`;
-    if(!open) continue;
-    const shown = list.slice(0, 200);
-    for(const s of shown){
-      const i = SATS.indexOf(s);
-      html += `<div class="sat" data-i="${i}"><span class="dot" style="color:#`+
-        `${s.prof.color.toString(16).padStart(6,'0')};background:currentColor"></span>`+
-        `<span class="nm">${s.name}</span><span class="el" id="el${i}">—</span></div>`;
-    }
-    if(list.length>shown.length)
-      html += `<div class="more">…另有 ${list.length-shown.length} 顆，請用搜尋縮小範圍</div>`;
-  }
-  host.innerHTML = html || '<div class="more">查無符合的衛星</div>';
+
+  host.innerHTML = html || '<div class="more">查無符合的項目</div>';
+  host.querySelectorAll('.stog').forEach(el=>el.onclick=()=>{
+    const k=el.dataset.s;
+    if(openSections.has(k)) openSections.delete(k); else openSections.add(k);
+    buildList();
+  });
   host.querySelectorAll('.gtog').forEach(el=>el.onclick=()=>{
     const g=el.dataset.g;
     if(openGroups.has(g)) openGroups.delete(g); else openGroups.add(g);

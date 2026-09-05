@@ -1,8 +1,8 @@
 # SatLink 完成度狀態
 
-> 本檔由 `check.py` 產生於 2026-09-05 05:27:39 UTC，不手寫。每次執行都重跑驗證，不沿用上次結論。
+> 本檔由 `check.py` 產生於 2026-09-05 05:54:29 UTC，不手寫。每次執行都重跑驗證，不沿用上次結論。
 
-**20 通過 · 0 失敗 · 0 未執行**
+**16 通過 · 0 失敗 · 4 未執行**
 
 
 ## 部署
@@ -10,7 +10,7 @@
 | 項目 | 結果 | 說明 |
 |---|---|---|
 | Service Worker 預快取清單與實際檔案一致 | ✅ PASS | 32 項；缺少 無 |
-| SW 版本號 | ✅ PASS | satlink-v1.11.0 |
+| SW 版本號 | ✅ PASS | satlink-v1.12.0 |
 | 大小與檔數在 Cloudflare Pages 限制內 | ✅ PASS | 33 檔 / 7.2 MB |
 | rebuild_data.py 存在 | ✅ PASS |  |
 | validation/test_frames.mjs 存在 | ✅ PASS |  |
@@ -39,26 +39,26 @@
 |---|---|---|
 | 座標框架回歸測試（IAU 1976 歲差） | ✅ PASS | 7 通過 / 0 失敗 |
 | 渲染不變式回歸測試（深度緩衝） | ✅ PASS | 11 通過 / 0 失敗 |
-| 攝影機標記大地座標回歸測試 | ✅ PASS | 6 通過 / 0 失敗 |
+| 攝影機標記大地座標回歸測試 | ✅ PASS | 8 通過 / 0 失敗 |
 
 ## Validation
 
 | 項目 | 結果 | 說明 |
 |---|---|---|
-| SatNOGS 全球地面站幾何比對 | ✅ PASS | 25 站；升起方位平均差 0.23°、最大仰角平均差 0.34°（SatNOGS 只報整數度，捨入即 ±0.5°） |
-| 都卜勒 vs Skyfield 獨立實作 | ✅ PASS | 擺幅 14,455 Hz；最大差 0.16 Hz（10.8 ppm） |
+| SatNOGS 全球地面站幾何比對 | ⚠️ SKIP | --offline |
+| 都卜勒 vs Skyfield 獨立實作 | ⚠️ SKIP | --offline |
 
 ## 資料
 
 | 項目 | 結果 | 說明 |
 |---|---|---|
-| 即時影像抽樣複驗 | ✅ PASS | YouTube 抽 5 支 4 支仍在直播且可嵌入（下線屬正常）；公務攝影機抽 6 支 6 支取得到影像 |
+| 即時影像抽樣複驗 | ⚠️ SKIP | --offline |
 
 ## 接點
 
 | 項目 | 結果 | 說明 |
 |---|---|---|
-| stats API（線上人數／累積造訪） | ✅ PASS | port 8790；13 通過 / 0 失敗 |
+| stats API（線上人數／累積造訪） | ⚠️ SKIP | 未偵測到 wrangler pages dev；啟動後可跑 validation/test_stats_api.py |
 
 ## 完成度分級
 

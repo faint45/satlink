@@ -45,6 +45,48 @@ export const KIND_COLOR = { scenic: 0x6ee7a8, city: 0x7ab8ff,
                             snapshot: 0xffc24d, mjpeg: 0xffc24d };
 export const KIND_LABEL = { scenic:'風景', city:'街景', snapshot:'公務', mjpeg:'公務' };
 
+/* ── 分洲 ────────────────────────────────────────────────
+   左側清單把 151 個據點依洲分組，否則攤成一條清單沒辦法逛。
+
+   分法採**聯合國 M49 地理分區，以國家為準**，不是我自己畫的邊界，
+   也不是從經緯度猜的。跨洲國家依 M49 歸屬：土耳其與以色列屬西亞（亞洲），
+   即使伊斯坦堡這支攝影機（lon 28.98）實際位在博斯普魯斯以西的歐洲側。
+   這是刻意的取捨：寧可用一個說得出出處的標準，也不要用「看起來比較順」的直覺。
+
+   國名來源：政府攝影機由 provider 決定（採集腳本已知來源），
+   其餘取 place 最後一段。查不到對應的一律歸「其他」—— 不猜。 */
+const REGION_OF = {
+  // 亞洲
+  'Taiwan':'亞洲','Japan':'亞洲','South Korea':'亞洲','Thailand':'亞洲','Nepal':'亞洲',
+  'Indonesia':'亞洲','Maldives':'亞洲','Hong Kong':'亞洲','Singapore':'亞洲',
+  'Israel':'亞洲','Turkey':'亞洲',
+  // 歐洲
+  'Italy':'歐洲','Switzerland':'歐洲','France':'歐洲','Norway':'歐洲',
+  'United Kingdom':'歐洲','Netherlands':'歐洲','Czech Republic':'歐洲',
+  'Ireland':'歐洲','Iceland':'歐洲',
+  // 美洲
+  'Canada':'北美洲','USA':'北美洲',
+  'Brazil':'南美洲','Argentina':'南美洲','Peru':'南美洲',
+  // 非洲、大洋洲
+  'South Africa':'非洲','Zambia':'非洲','Kenya':'非洲',
+  'Australia':'大洋洲','New Zealand':'大洋洲'
+};
+export const REGION_ORDER = ['亞洲','歐洲','北美洲','南美洲','非洲','大洋洲','其他'];
+
+export function camCountry(c){
+  const prov = c.provider || '';
+  if(prov.includes('DriveBC') || prov.includes('Ontario')) return 'Canada';
+  if(prov.includes('公路局')) return 'Taiwan';
+  const p = (c.place || '').split('·')[0].trim();
+  return p ? p.split(',').pop().trim() : '';
+}
+export function camRegion(c){ return REGION_OF[camCountry(c)] || '其他'; }
+
+/* 同一洲之內的排序：風景在前、街景次之、公路即景最後 ——
+   這個清單是給人逛風景用的，路況攝影機不該排在聖母峰前面。 */
+const KIND_RANK = { scenic:0, city:1, snapshot:2, mjpeg:2 };
+export const camKindRank = c => KIND_RANK[c.kind] ?? 3;
+
 /* 建立標記圖層：一個 Points 批次繪製所有攝影機 */
 export function buildCamLayer(U, FLAT, RE_km){
   const cams = camList(), n = cams.length;
