@@ -1,0 +1,637 @@
+{
+ "fetched_utc": "2026-09-04T15:30:10Z",
+ "source": "YouTube 直播（live 篩選搜尋 → 逐一查證直播中且允許嵌入 → 標題/頻道須與地點關鍵字相符）",
+ "geo_source": "OpenStreetMap Nominatim；座標為地點中心，非攝影機實際架設點",
+ "verified": 35,
+ "skipped": [
+  [
+   "白川鄉",
+   "標題與地點比對不通過或無可用直播"
+  ],
+  [
+   "下龍灣",
+   "標題與地點比對不通過或無可用直播"
+  ],
+  [
+   "聖托里尼",
+   "標題與地點比對不通過或無可用直播"
+  ],
+  [
+   "布萊德湖",
+   "標題與地點比對不通過或無可用直播"
+  ],
+  [
+   "哈爾施塔特",
+   "標題與地點比對不通過或無可用直播"
+  ],
+  [
+   "馬丘比丘",
+   "標題與地點比對不通過或無可用直播"
+  ],
+  [
+   "伊瓜蘇瀑布",
+   "標題與地點比對不通過或無可用直播"
+  ],
+  [
+   "十六湖",
+   "標題與地點比對不通過或無可用直播"
+  ],
+  [
+   "杜布羅夫尼克",
+   "標題與地點比對不通過或無可用直播"
+  ],
+  [
+   "露易絲湖",
+   "標題與地點比對不通過或無可用直播"
+  ]
+ ],
+ "cams": [
+  {
+   "kind": "youtube",
+   "id": "bdUbACCWmoY",
+   "title": "【LIVE】河口湖大石公園からの「富士山ライブカメラ」 \"mount fuji live camera\" from Lake Kawaguchiko Oishi Park  (Japan)",
+   "channel": "【KTV】ケーブルテレビ河口湖",
+   "viewers": "9",
+   "place": "Mount Fuji, Japan",
+   "zh": "富士山",
+   "lat": 35.36284,
+   "lon": 138.73077,
+   "geo_name": "富士山, 小山町, 駿東郡, 静岡県, 日本",
+   "geo_precision": "place",
+   "matched": [
+    "fuji",
+    "富士"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "bdUbACCWmoY",
+   "title": "【LIVE】河口湖大石公園からの「富士山ライブカメラ」 \"mount fuji live camera\" from Lake Kawaguchiko Oishi Park  (Japan)",
+   "channel": "【KTV】ケーブルテレビ河口湖",
+   "viewers": "9",
+   "place": "Lake Kawaguchi, Japan",
+   "zh": "河口湖",
+   "lat": 35.51306,
+   "lon": 138.74482,
+   "geo_name": "河口湖, 富士河口湖町, 南都留郡, 山梨県, 401-0392, 日本",
+   "geo_precision": "place",
+   "matched": [
+    "kawaguchi",
+    "河口湖"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "z2QHM5P_xs4",
+   "title": "[ 🔴LIVE ] 지금 제주는? | 날씨&교통정보 실시간 라이브",
+   "channel": "젬비씨 JEMBC",
+   "viewers": null,
+   "place": "Jeju Island, South Korea",
+   "zh": "濟州島",
+   "lat": 33.38035,
+   "lon": 126.54825,
+   "geo_name": "제주도, 제주특별자치도, 대한민국",
+   "geo_precision": "place",
+   "matched": [
+    "jeju",
+    "제주"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "eeBxAXtAOx0",
+   "title": "Ⓔ-05🔴Live-嘉義縣市、阿里山遊樂區 重要路口 即時影像- Chiayi County, Taiwan  24H》 24/7, 365 天氣、車流人流狀況 背景音樂 💖 情歌 🅣ⓁⒽ80",
+   "channel": "禿鷹 Music",
+   "viewers": "2",
+   "place": "Alishan, Taiwan",
+   "zh": "阿里山",
+   "lat": 23.51503,
+   "lon": 120.80975,
+   "geo_name": "阿里山鄉, 嘉義縣, 605, 臺灣",
+   "geo_precision": "place",
+   "matched": [
+    "阿里山",
+    "alishan"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "W8y4AjMNbf8",
+   "title": "Ⓒ-02-🔴日月潭 以及 南投縣 重要路口即時影像輪播24H》 24/7, 365 天氣、地震、車流人流狀況 爵士音樂中文 Jazz-🅣Ⓣ44",
+   "channel": "禿鷹 Music",
+   "viewers": null,
+   "place": "Sun Moon Lake, Taiwan",
+   "zh": "日月潭",
+   "lat": 23.85233,
+   "lon": 120.92861,
+   "geo_name": "日月潭, 日月村, 魚池鄉, 南投縣, 臺灣",
+   "geo_precision": "place",
+   "matched": [
+    "日月潭",
+    "sun moon"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "z_fY1pj1VBw",
+   "title": "【Taipei Live Cam】象山看台北 - 4K即時影像 | Overlooking Taipei at the top of Xiangshan | 象山から望む台北 | Taipei 101",
+   "channel": "Taipei Travel Live Cam  台北觀光即時影像 ",
+   "viewers": "84",
+   "place": "Taipei 101, Taiwan",
+   "zh": "台北101",
+   "lat": 25.03384,
+   "lon": 121.5645,
+   "geo_name": "台北101, 7, 信義路五段, 西村里, 信義區, 信義商圈, 臺北市, 11049, 臺灣",
+   "geo_precision": "place",
+   "matched": [
+    "台北",
+    "taipei"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "L1duJDAqbJY",
+   "title": "Bali Weather Live Webcam | Wide 4K Panorama from Bukit Jimbaran",
+   "channel": "Bali Weather Live Stream",
+   "viewers": null,
+   "place": "Bali, Indonesia",
+   "zh": "峇里島",
+   "lat": -8.22713,
+   "lon": 115.19192,
+   "geo_name": "Bali, Indonesia",
+   "geo_precision": "place",
+   "matched": [
+    "bali"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "_nvG0c9keWI",
+   "title": "Sainamyen Road, Patong, Phuket, Thailand | Nida Massage | Live Camera Stream",
+   "channel": "Randomly Entertained",
+   "viewers": null,
+   "place": "Phuket, Thailand",
+   "zh": "普吉島",
+   "lat": 7.9366,
+   "lon": 98.35293,
+   "geo_name": "จังหวัดภูเก็ต, ประเทศไทย",
+   "geo_precision": "place",
+   "matched": [
+    "phuket"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "_BMi3usEwi8",
+   "title": "Ocean Ambience 4K (LIVE 24/7). Tropical Beach & Ocean Waves Sounds. Maldives InterContinental",
+   "channel": "Luxury Island",
+   "viewers": "289",
+   "place": "Maldives",
+   "zh": "馬爾地夫",
+   "lat": 3.72035,
+   "lon": 73.22442,
+   "geo_name": "ދިވެހިރާއްޖެ",
+   "geo_precision": "place",
+   "matched": [
+    "maldive"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "JcHYcrO4PRE",
+   "title": "SurveillanceMap LIVE · Matterhorn · Zermatt, Schweiz",
+   "channel": "Surveillance Map Foundation",
+   "viewers": null,
+   "place": "Zermatt, Switzerland",
+   "zh": "策馬特",
+   "lat": 46.02121,
+   "lon": 7.74925,
+   "geo_name": "Zermatt, Visp, Oberwallis, Valais/Wallis, 3920, Schweiz/Suisse/Svizzera/Svizra",
+   "geo_precision": "place",
+   "matched": [
+    "zermatt",
+    "matterhorn"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "fVkP1ri9oaU",
+   "title": "Berner Oberland Live: Eiger, Mönch, Jungfrau & Thunersee – Webcam Chalet Hinkelstein Beatenberg",
+   "channel": "Tour-Tips",
+   "viewers": null,
+   "place": "Jungfraujoch, Switzerland",
+   "zh": "少女峰",
+   "lat": 46.54758,
+   "lon": 7.97897,
+   "geo_name": "Jungfraujoch, Lauterbrunnen, Verwaltungskreis Interlaken-Oberhasli, Verwaltungsregion Oberland, Bern/Berne, 3801, Schweiz/Suisse/Svizzera/Svizra",
+   "geo_precision": "place",
+   "matched": [
+    "jungfrau"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "Y1qp-EVF_oU",
+   "title": "🔴 Dolomiten Panorama – 24/7 LIVE Stream Webcams Alpen Italien",
+   "channel": "feratel – your window to the world",
+   "viewers": "34",
+   "place": "Dolomites, Italy",
+   "zh": "多洛米蒂",
+   "lat": 46.29457,
+   "lon": 12.05132,
+   "geo_name": "Dolomiti, Veneto, Italia",
+   "geo_precision": "place",
+   "matched": [
+    "dolomit"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "a1mcaV3Sf9U",
+   "title": "🔴 LIVE 24/7  Rolling Cam Venice - Live Cam in Venice Italy - Livecam en direct #venice",
+   "channel": "I Love You Venice",
+   "viewers": "53",
+   "place": "Venice, Italy",
+   "zh": "威尼斯",
+   "lat": 45.43719,
+   "lon": 12.33459,
+   "geo_name": "Venezia, Veneto, 30121-30176, Italia",
+   "geo_precision": "place",
+   "matched": [
+    "venice",
+    "venezia"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "yMSc-qqW3To",
+   "title": "Geirangerfjord cruise port, Geiranger",
+   "channel": "Geirangerfjord cruise port",
+   "viewers": "76",
+   "place": "Geiranger, Norway",
+   "zh": "蓋倫格峽灣",
+   "lat": 62.10063,
+   "lon": 7.2059,
+   "geo_name": "Geiranger, Stranda, Møre og Romsdal, 6216, Norge",
+   "geo_precision": "place",
+   "matched": [
+    "norway",
+    "fjord",
+    "geiranger"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "3y7_fkAzzps",
+   "title": "Vervet Live - Utsikt Sør",
+   "channel": "Vervet Tromsø",
+   "viewers": "14",
+   "place": "Tromso, Norway",
+   "zh": "特羅姆瑟",
+   "lat": 69.65163,
+   "lon": 18.95586,
+   "geo_name": "Tromsø, Troms, Norge",
+   "geo_precision": "place",
+   "matched": [
+    "tromso",
+    "tromsø",
+    "norway"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "qkSvU9j4kqM",
+   "title": "🔴 Live Now: 24/7 Iceland Volcano Watch (Multi-cams)",
+   "channel": "afarTV",
+   "viewers": "71",
+   "place": "Reykjavik, Iceland",
+   "zh": "冰島",
+   "lat": 64.14598,
+   "lon": -21.94224,
+   "geo_name": "Reykjavíkurborg, Höfuðborgarsvæðið, Ísland",
+   "geo_precision": "place",
+   "matched": [
+    "iceland",
+    "volcano"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "vk62QErdX4Q",
+   "title": "🏞️ Yosemite Falls 24/7 | Yosemite National Park | Nature Sounds for Sleep LIVE",
+   "channel": "Trail Trekker TV",
+   "viewers": null,
+   "place": "Yosemite National Park, USA",
+   "zh": "優勝美地",
+   "lat": 37.8393,
+   "lon": -119.51646,
+   "geo_name": "Yosemite National Park, California, United States",
+   "geo_precision": "place",
+   "matched": [
+    "yosemite"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "sJn7eqgqXno",
+   "title": "Arizona Snowbowl - Grand Canyon Express",
+   "channel": "Arizona Snowbowl",
+   "viewers": null,
+   "place": "Grand Canyon, USA",
+   "zh": "大峽谷",
+   "lat": 36.09804,
+   "lon": -112.09628,
+   "geo_name": "Grand Canyon, Coconino County, Arizona, United States",
+   "geo_precision": "place",
+   "matched": [
+    "grand canyon"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "yiZ6nFZ8NRw",
+   "title": "🔴 LIVE: Ultimate Montana Webcam Tour 🏔️ Glacier NP, Yellowstone & Big Sky Country | NOW!",
+   "channel": "MontanaLiveCam",
+   "viewers": "23",
+   "place": "Yellowstone National Park, USA",
+   "zh": "黃石公園",
+   "lat": 44.62009,
+   "lon": -110.56069,
+   "geo_name": "Yellowstone National Park, Wyoming, United States",
+   "geo_precision": "place",
+   "matched": [
+    "yellowstone",
+    "old faithful"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "HghxOQ12dy4",
+   "title": "Banff Centre Spray Valley",
+   "channel": "Banff Centre for Arts and Creativity",
+   "viewers": "12",
+   "place": "Banff National Park, Canada",
+   "zh": "班夫",
+   "lat": 51.48813,
+   "lon": -115.93805,
+   "geo_name": "Banff National Park, Alberta, Canada",
+   "geo_precision": "place",
+   "matched": [
+    "banff"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "qx7gry390YA",
+   "title": "EarthCam Live:  Niagara Falls",
+   "channel": "EarthCam",
+   "viewers": "20",
+   "place": "Niagara Falls, Canada",
+   "zh": "尼加拉瀑布",
+   "lat": 43.10656,
+   "lon": -79.0639,
+   "geo_name": "Niagara Falls, Niagara Region, Golden Horseshoe, Ontario, Canada",
+   "geo_precision": "place",
+   "matched": [
+    "niagara"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "J7ZrIDvqlic",
+   "title": "LIVE Brooks Falls - Katmai National Park, Alaska 2026 | explore.org",
+   "channel": "Explore Live Nature Cams",
+   "viewers": "1,300",
+   "place": "Katmai National Park, Alaska, USA",
+   "zh": "布魯克斯瀑布棕熊",
+   "lat": 58.50498,
+   "lon": -155.08962,
+   "geo_name": "Katmai National Park, Alaska, United States",
+   "geo_precision": "place",
+   "matched": [
+    "brooks",
+    "katmai"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "4CK0CsimBHs",
+   "title": "Waikiki Beach LIVE Cam | Waikiki Beach Marriott Resort & Spa, Hawaii",
+   "channel": "Ozolio Live",
+   "viewers": "13",
+   "place": "Waikiki, Honolulu, Hawaii, USA",
+   "zh": "威基基海灘",
+   "lat": 21.27936,
+   "lon": -157.82857,
+   "geo_name": "Waikīkī, East Honolulu, Honolulu, Honolulu County, Hawaii, 96830, United States",
+   "geo_precision": "place",
+   "matched": [
+    "waikiki"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "IhGNK_hImLs",
+   "title": "Webcam Rio de Janeiro Copacabana Posto 6",
+   "channel": "Homes in Rio",
+   "viewers": "80",
+   "place": "Copacabana, Rio de Janeiro, Brazil",
+   "zh": "科帕卡巴納",
+   "lat": -22.97197,
+   "lon": -43.1843,
+   "geo_name": "Copacabana, Rio de Janeiro, Região Sudeste, Brasil",
+   "geo_precision": "place",
+   "matched": [
+    "copacabana",
+    "rio"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "f9uqHbXChno",
+   "title": "Victoria Falls Safari Lodge | Live Waterhole Cam - Elephants, Buffalo & More | Zimbabwe",
+   "channel": "Africam",
+   "viewers": "4",
+   "place": "Victoria Falls, Zambia",
+   "zh": "維多利亞瀑布",
+   "lat": -17.92421,
+   "lon": 25.85487,
+   "geo_name": "Horseshoe Falls, Livingstone, Livingstone District, Southern Province, Zambia",
+   "geo_precision": "place",
+   "matched": [
+    "victoria falls"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "xXZqU5vnEug",
+   "title": "LIVE Safari Webcam | Maasai Mara, Kenya | African Wildlife at Mara Bushtops",
+   "channel": "Bushtops Safaris",
+   "viewers": "89",
+   "place": "Maasai Mara, Kenya",
+   "zh": "馬賽馬拉",
+   "lat": -1.09592,
+   "lon": 35.85661,
+   "geo_name": "MAASAI MARA SEWERAGE, Narok, Narok Town ward, Narok North, Narok, Kenya",
+   "geo_precision": "place",
+   "matched": [
+    "mara",
+    "kenya",
+    "safari"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "Cq2qCph6Lx8",
+   "title": "Rosie's Pan | Wildlife Live Stream – Greater Kruger National Park",
+   "channel": "Africam",
+   "viewers": "8",
+   "place": "Kruger National Park, South Africa",
+   "zh": "克留格爾",
+   "lat": -23.93578,
+   "lon": 31.50837,
+   "geo_name": "Kruger National Park, Limpopo, 1350, South Africa",
+   "geo_precision": "place",
+   "matched": [
+    "kruger",
+    "waterhole"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "jOqASqt3vVI",
+   "title": "Table Mountain Live Stream | Cape Town Webcam | South Africa",
+   "channel": "Table Mountain Live Stream",
+   "viewers": null,
+   "place": "Table Mountain, Cape Town, South Africa",
+   "zh": "桌山",
+   "lat": -33.95906,
+   "lon": 18.40387,
+   "geo_name": "Table Mountain, Bakoven, Cape Town Ward 54, Cape Town, City of Cape Town, Western Cape, 7735, South Africa",
+   "geo_precision": "place",
+   "matched": [
+    "table mountain",
+    "cape town"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "1zcIUk66HX4",
+   "title": "Utopia Village Top-of-Wall Underwater Reef Cam powered by EXPLORE.org",
+   "channel": "Explore Oceans",
+   "viewers": "157",
+   "place": "Great Barrier Reef, Australia",
+   "zh": "大堡礁",
+   "lat": -16.35,
+   "lon": 145.9,
+   "geo_name": "Great Barrier Reef, Australia",
+   "geo_precision": "place",
+   "matched": [
+    "reef",
+    "barrier"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "5uZa3-RMFos",
+   "title": "WebcamSydney 1 Live Stream of Harbour 24/7 (~4K)",
+   "channel": "WebcamSydney",
+   "viewers": "113",
+   "place": "Sydney Harbour, Australia",
+   "zh": "雪梨港",
+   "lat": -33.85054,
+   "lon": 151.20102,
+   "geo_name": "Sydney Harbour, Sydney, New South Wales, 2061, Australia",
+   "geo_precision": "place",
+   "matched": [
+    "sydney"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "QEZZHkxx6SM",
+   "title": "Live Fiordland Webcam | Lake Te Anau, NZ",
+   "channel": "Southland App Live",
+   "viewers": null,
+   "place": "Milford Sound, New Zealand",
+   "zh": "米佛峽灣",
+   "lat": -44.61902,
+   "lon": 167.86876,
+   "geo_name": "Milford Sound / Piopiotahi, Fiordland Community, Southland, New Zealand / Aotearoa",
+   "geo_precision": "place",
+   "matched": [
+    "milford",
+    "fiordland"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "cdvoGkY2NFE",
+   "title": "🇮🇹 Amalfi Coast Summer LIVE☀️Relaxing Italian Instrumental Music |Mediterranean Cafe Ambience | 24/7",
+   "channel": "Amalfi’s Dream",
+   "viewers": "148",
+   "place": "Amalfi Coast, Italy",
+   "zh": "阿瑪菲海岸",
+   "lat": 40.66816,
+   "lon": 14.72133,
+   "geo_name": "Amalfi Coast Casa Ida, 107, Via Giuseppe Pellegrino, Marina di Vietri, Vietri sul Mare, Salerno, Campania, 84019, Italia",
+   "geo_precision": "place",
+   "matched": [
+    "amalfi",
+    "positano"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "bPnXlt1jNf0",
+   "title": "🏰 MONT-SAINT-MICHEL EN DIRECT – Webcam LIVE depuis les falaises de Champeaux",
+   "channel": "Les webcams de la Baie du Mont-Saint-Michel",
+   "viewers": "2",
+   "place": "Mont Saint-Michel, France",
+   "zh": "聖米歇爾山",
+   "lat": 48.63595,
+   "lon": -1.51146,
+   "geo_name": "Mont Saint-Michel, Le Mont-Saint-Michel, Avranches, Manche, Normandie, France métropolitaine, 50170, France",
+   "geo_precision": "place",
+   "matched": [
+    "saint michel",
+    "mont-saint"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "bQ9VS-hM1D8",
+   "title": "Webcam Live Porto di Vernazza - Cinque Terre",
+   "channel": "Comune di Vernazza",
+   "viewers": "6",
+   "place": "Cinque Terre, Italy",
+   "zh": "五漁村",
+   "lat": 44.12221,
+   "lon": 9.71325,
+   "geo_name": "Cinque Terre, Vernazza, La Spezia, Liguria, 19018, Italia",
+   "geo_precision": "place",
+   "matched": [
+    "cinque",
+    "vernazza",
+    "monterosso"
+   ]
+  },
+  {
+   "kind": "youtube",
+   "id": "mjNxkYA0gxo",
+   "title": "WEBCAM NEPAL LIVE - HOTEL EVEREST VIEW - ALLSKY",
+   "channel": "WEBCAM NEPAL NATURE",
+   "viewers": null,
+   "place": "Mount Everest, Nepal",
+   "zh": "聖母峰",
+   "lat": 27.98806,
+   "lon": 86.92521,
+   "geo_name": "珠穆朗玛峰 ཇོ་མོ་གླང་མ། सगरमाथा, खुम्बु पासाङल्हामु गाउँपालिका, सोलुखुम्बु जिल्ला, कोशी प्रदेश, नेपाल",
+   "geo_precision": "place",
+   "matched": [
+    "everest",
+    "khumbu"
+   ]
+  }
+ ]
+}

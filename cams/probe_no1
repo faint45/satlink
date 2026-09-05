@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="shortcut icon" href="/assets/favicon-51mXRhfx.ico" />
+    <link href="" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vegkamera</title>
+    <script type="module" crossorigin src="/assets/index-urVx07so.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Cal3QSN9.css">
+  </head>
+  <body>
+    <noscript aria-hidden="true">Du må aktivere JavaScript for å kjøre denne appen.</noscript>
+    <div id="root"></div>
+
+  </body>
+</html>

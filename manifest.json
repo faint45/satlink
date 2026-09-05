@@ -1,0 +1,28 @@
+{
+  "name": "SatLink — 太空視角衛星通聯",
+  "short_name": "SatLink",
+  "description": "真實 TLE 與 JPL 星曆驅動的 3D 地球衛星通聯模擬：614 顆衛星、真實鏈路預算、多波束覆蓋與 26 個深空任務。",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#04060d",
+  "theme_color": "#04060d",
+  "lang": "zh-Hant",
+  "dir": "ltr",
+  "categories": ["education", "science", "utilities"],
+  "icons": [
+    { "src": "icons/icon-192.png",     "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png",     "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "太空探索任務", "short_name": "深空", "url": "./?view=deep",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "多波束覆蓋", "short_name": "波束", "url": "./?view=hive",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

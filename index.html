@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SatLink — 太空視角衛星通聯</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#04060d">
+<meta name="description" content="真實 TLE 與 JPL 星曆驅動的 3D 地球衛星通聯模擬">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SatLink">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="vig"></div>
+<button id="mnav" aria-label="開關目錄">目錄</button>
+<div id="about">
+ <div class="abox">
+  <div class="ahd"><span>SATLINK</span><b>太空視角衛星通聯</b>
+    <button class="sb" id="a_x">開始 →</button></div>
+  <div class="abody">
+   <p class="lead">這是一個真實資料驅動的 3D 地球。畫面上的衛星位置來自今日的軌道根數，
+   訊號強度用真正的鏈路預算公式算，月球與深空探測器的位置來自 NASA/JPL 星曆。
+   <b>每一個數字都說得出出處</b>。</p>
+
+   <div class="acol">
+    <div>
+     <h4>可以做什麼</h4>
+     <ul>
+      <li>點左側清單任一顆衛星，右側即時顯示仰角、斜距、都卜勒頻移、鏈路餘裕</li>
+      <li>底部切換圖層：多波束覆蓋、太空探索任務、星團與系外行星、全球即時影像</li>
+      <li>開「即時影像」後點地球上的圓圈，看該地的直播</li>
+      <li><b>「漫遊」會替你選點</b>：自動飛到世界各地的風景據點、停留約一分鐘，鏡頭沿著當地緩慢繞行；想在某處多待一會兒，動一下滑鼠就會自動延後</li>
+      <li>時間可加速到 1800 倍，看軌道怎麼跑</li>
+     </ul>
+    </div>
+    <div>
+     <h4>什麼是真的，什麼不是</h4>
+     <ul>
+      <li><s>真</s> 軌道、通聯幾何、鏈路預算、月球位置與月相、波束覆蓋幾何</li>
+      <li><s>近似</s> 恆星／星團／系外行星只有<b>方向</b>是真的，距離畫在固定天球上</li>
+      <li><s>近似</s> 深空任務方向真、徑向經對數壓縮，真實距離另外標示</li>
+      <li><s>示意</s> 衛星外形為辨識用，非工程圖；放大倍率顯示於介面</li>
+      <li><s>快照</s> 資料是取得當下的，不是即時串流；TLE 年齡顯示於介面</li>
+     </ul>
+    </div>
+   </div>
+
+   <h4>資料來源</h4>
+   <div class="src">
+    <span>軌道 <a href="https://celestrak.org/" target="_blank" rel="noopener">CelesTrak</a> GP + Supplemental</span>
+    <span>地表影像 <a href="https://worldview.earthdata.nasa.gov/" target="_blank" rel="noopener">NASA GIBS</a> VIIRS/SNPP</span>
+    <span>星曆 <a href="https://ssd.jpl.nasa.gov/horizons/" target="_blank" rel="noopener">NASA/JPL Horizons</a></span>
+    <span>恆星 <a href="https://github.com/astronexus/HYG-Database" target="_blank" rel="noopener">HYG Database v4.0</a>（CC BY-SA 2.5）</span>
+    <span>深空天體 <a href="https://github.com/mattiaverga/OpenNGC" target="_blank" rel="noopener">OpenNGC</a>（CC BY-SA 4.0）</span>
+    <span>系外行星 <a href="https://exoplanetarchive.ipac.caltech.edu/" target="_blank" rel="noopener">NASA Exoplanet Archive</a></span>
+    <span>地名座標 <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>（ODbL）</span>
+    <span>即時影像 YouTube 直播（官方嵌入）</span>
+    <span>軌道傳播 SGP4/SDP4（satellite.js, Vallado 2006）</span>
+   </div>
+
+   <p class="fine">隱私：不使用 cookie、不記錄 IP、不做任何個人識別。若顯示線上人數，
+   計數用的是一組隨機字串，只存在於這個分頁，關閉即消失。<br>
+   即時影像由 YouTube 官方播放器提供，播放時適用 YouTube 自身的政策。</p>
+  </div>
+ </div>
+</div>
+<div id="mscrim"></div>
+<i class="reg tl"></i><i class="reg tr"></i><i class="reg bl"></i><i class="reg br"></i>
+
+<div id="boot">正在載入真實軌道資料…<br><b id="bootmsg"></b></div>
+
+<div class="panel" id="left">
+  <h1>SatLink 太空視角
+    <small id="src">TLE 來源：CelesTrak GP</small></h1>
+  <div id="satlist"></div>
+</div>
+
+<div class="panel" id="right">
+  <div class="hd"><div class="t" id="selName">—</div><div class="s" id="selSub">—</div></div>
+  <div class="sec">
+    <div class="lbl">幾何（相對地面站）</div>
+    <div class="row"><span class="k">仰角 Elevation</span><span class="v" id="v_el">—</span></div>
+    <div class="row"><span class="k">方位角 Azimuth</span><span class="v" id="v_az">—</span></div>
+    <div class="row"><span class="k">斜距 Slant range</span><span class="v" id="v_rng">—</span></div>
+    <div class="row"><span class="k">高度 Altitude</span><span class="v" id="v_alt">—</span></div>
+    <div class="row"><span class="k">視線速度</span><span class="v" id="v_rr">—</span></div>
+  </div>
+  <div class="sec">
+    <div class="lbl">訊號（真實鏈路預算）</div>
+    <div class="row"><span class="k">都卜勒頻移</span><span class="v" id="v_dop">—</span></div>
+    <div class="row"><span class="k">傳播延遲</span><span class="v" id="v_lat">—</span></div>
+    <div class="row"><span class="k">FSPL 自由空間損耗</span><span class="v" id="v_fspl">—</span></div>
+    <div class="row"><span class="k">大氣+電離層</span><span class="v" id="v_atm">—</span></div>
+    <div class="row"><span class="k">C/N₀</span><span class="v" id="v_cn0">—</span></div>
+    <div class="row"><span class="k">Eb/N₀</span><span class="v" id="v_ebn0">—</span></div>
+    <div class="row"><span class="k">鏈路餘裕 Margin</span><span class="v" id="v_marg">—</span></div>
+    <div class="bar"><i id="v_bar" style="width:0%"></i></div>
+  </div>
+  <div class="sec">
+    <div class="lbl">資料真實度</div>
+    <div class="row"><span class="k">TLE 年齡</span><span class="v" id="v_age">—</span></div>
+    <div class="row"><span class="k">位置不確定度</span><span class="v" id="v_unc">—</span></div>
+    <div class="row"><span class="k">傳播器</span><span class="v" id="v_prop">—</span></div>
+    <div class="cite" id="cite"></div>
+  </div>
+</div>
+
+<div class="panel" id="time">
+  <span id="utc">—</span>
+  <span class="sp" id="speeds"></span>
+</div>
+<div class="panel" id="layers"></div>
+<div id="focus"><span id="focus_t">—</span><button class="sb" id="focus_x">退出聚焦 ESC</button></div>
+<div id="roam_hint"><span>漫遊中</span><i>自動巡遊全球風景 · 動一下滑鼠就會停留久一點</i><button class="sb" id="roam_x">結束漫遊</button></div>
+<div id="warn"></div>
+<div id="off">離線模式 — 顯示的是最後一次取得的 TLE 與星曆快照</div>
+<div class="panel" id="cam">
+  <div class="chd">
+    <span id="c_name">—</span>
+    <button class="sb" id="c_x">×</button>
+  </div>
+  <div id="c_player"></div>
+  <div class="sec"><div class="cite" id="c_cite"></div></div>
+</div>
+<div id="stats" title="線上人數與累積造訪次數"></div>
+<div id="pwa">
+  <span id="pwa_txt"></span>
+  <button class="sb" id="pwa_btn"></button>
+  <button class="sb" id="pwa_x">×</button>
+</div>
+
+<div class="panel" id="mission">
+  <div class="mhd"><span id="m_name">—</span><b id="m_kind">—</b></div>
+  <div class="sec">
+    <div class="row"><span class="k">真實地心距離</span><span class="v" id="m_dist">—</span></div>
+    <div class="row"><span class="k">單程光行時間</span><span class="v" id="m_light">—</span></div>
+    <div class="row"><span class="k">任務狀態</span><span class="v" id="m_note">—</span></div>
+    <div class="cite" id="m_cite"></div>
+  </div>
+</div>
+
+<script src="lib/satellite.min.js"></script>
+<script type="importmap">
+{"imports":{"three":"./lib/three.module.js"}}
+</script>
+<script type="module" src="app.js"></script>
+<script>
+/* Service Worker：離線可用 + 更新提示。
+   誠實提醒：離線時資料仍是最後一次快取的快照，介面上的 TLE 年齡欄位會反映這點。 */
+(function(){
+  var P=document.getElementById('pwa'), T=document.getElementById('pwa_txt'),
+      B=document.getElementById('pwa_btn'), X=document.getElementById('pwa_x'),
+      OFF=document.getElementById('off');
+  function show(msg, btn, fn){ T.textContent=msg; B.textContent=btn; B.onclick=fn;
+    P.classList.add('show'); }
+  X.onclick=function(){ P.classList.remove('show'); };
+  function offline(){ OFF.classList.toggle('show', !navigator.onLine); }
+  addEventListener('online', offline); addEventListener('offline', offline); offline();
+
+  /* 本機開發不註冊 Service Worker：否則改了檔案仍會被舊快取供應，
+     實測已兩次因此看到過期畫面。正式站（非 localhost）才啟用離線快取。 */
+  var DEV = ['localhost','127.0.0.1','[::1]'].indexOf(location.hostname) >= 0;
+  if(DEV && 'serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(function(rs){
+      rs.forEach(function(r){ r.unregister(); });
+    });
+    if(window.caches) caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); });
+  }
+  if(!DEV && 'serviceWorker' in navigator){
+    /* 不等 load：本頁有約 6 MB 貼圖，load 事件會被拖很久，
+       導致註冊遲遲不發生（實測 10 秒後仍為 0 個註冊）。 */
+    (function(){
+      navigator.serviceWorker.register('sw.js').then(function(reg){
+        reg.addEventListener('updatefound', function(){
+          var nw=reg.installing;
+          nw && nw.addEventListener('statechange', function(){
+            if(nw.state==='installed' && navigator.serviceWorker.controller)
+              show('有新版本可用', '更新', function(){
+                nw.postMessage('skipWaiting'); location.reload(); });
+          });
+        });
+      }).catch(function(e){ console.warn('[SatLink] SW 註冊失敗:', e); });
+      var reloading=false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if(reloading) return; reloading=true; location.reload();
+      });
+    })();
+  }
+  /* ── 線上人數與累積造訪次數 ──────────────────────────────
+     由 /api/stats（Cloudflare Pages Function + D1）提供。
+     若後端未部署或未綁定 D1，API 會回 503，此處直接隱藏徽章 ——
+     絕不顯示假造或推估的數字。本機以 python http.server 開啟時即屬此情況。
+     不設 cookie、不送 IP；sid 只是隨機字串，存活於該分頁的 sessionStorage。 */
+  (function(){
+    var BADGE=document.getElementById('stats');
+    var sid=null, isNew=0;
+    try{
+      sid=sessionStorage.getItem('satlink_sid');
+      if(!sid){
+        sid=(crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2)+Date.now())
+              .replace(/[^A-Za-z0-9_-]/g,'').slice(0,40);
+        sessionStorage.setItem('satlink_sid', sid); isNew=1;
+      }
+    }catch(e){ sid=null; }              // 隱私模式等情況：不計數，安靜略過
+    if(!sid) return;
+    var fails=0;
+    /* 端點自動偵測：Cloudflare Pages 是 ./api/stats（Function），
+       自架於 NAS 的 Apache 是 ./api/stats.php。先試前者，失敗改後者並記住，
+       同一份建置就能在兩種主機上運作，不必分版本。 */
+    var EP=null, CAND=['api/stats','api/stats.php'];
+    function fmt(n){ return (n||0).toLocaleString(); }
+    function post(url){
+      return fetch(url,{method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({sid:sid,new:isNew})});
+    }
+    function beat(){
+      (EP ? post(EP) : post(CAND[0]).then(function(r){
+          if(r.ok){ EP=CAND[0]; return r; }
+          return post(CAND[1]).then(function(r2){ if(r2.ok) EP=CAND[1]; return r2; });
+        }))
+      .then(function(r){ return r.json().then(function(j){ return {s:r.status,j:j}; }); })
+      .then(function(o){
+        isNew=0;
+        if(!o.j || !o.j.ok){ fails++; if(fails>=2) BADGE.classList.remove('show'); return; }
+        fails=0;
+        BADGE.innerHTML='<span>線上 <b>'+fmt(o.j.online)+'</b> 人</span>'+
+                        '<span>累積造訪 <i>'+fmt(o.j.views)+'</i> 次</span>';
+        BADGE.classList.add('show');
+      })
+      .catch(function(){ fails++; if(fails>=2) BADGE.classList.remove('show'); });
+    }
+    beat(); setInterval(beat, 45000);   // 45 秒：兼顧即時感與 D1 每日寫入額度
+    addEventListener('visibilitychange', function(){ if(!document.hidden) beat(); });
+  })();
+
+  /* 手機版互動：目錄抽屜、底部讀數面板。
+     桌面版不套用（CSS 以 min-width:721px 隱藏觸發元件）。 */
+  (function(){
+    var B=document.body,
+        nav=document.getElementById('mnav'),
+        scrim=document.getElementById('mscrim'),
+        right=document.getElementById('right');
+    if(nav) nav.onclick=function(){ B.classList.toggle('m-nav'); };
+    if(scrim) scrim.onclick=function(){ B.classList.remove('m-nav'); };
+    // 點清單項目後自動收起抽屜，否則選完還要再點一次才看得到地球
+    document.getElementById('satlist').addEventListener('click', function(e){
+      if(e.target.closest('.sat')) B.classList.remove('m-nav');
+    });
+    var hd = right && right.querySelector('.hd');
+    if(hd) hd.onclick=function(){ B.classList.toggle('m-read'); };
+  })();
+
+  /* 關於頁：首次造訪自動開啟，之後由控制列的「關於」鈕開啟。
+     用 localStorage 記住，避免每次重整都擋在使用者面前。 */
+  (function(){
+    var A=document.getElementById('about');
+    function open(){ A.classList.add('show'); }
+    function close(){ A.classList.remove('show');
+      try{ localStorage.setItem('satlink_seen','1'); }catch(e){} }
+    document.getElementById('a_x').onclick=close;
+    A.addEventListener('click', function(e){ if(e.target===A) close(); });
+    addEventListener('keydown', function(e){ if(e.key==='Escape') close(); });
+    var seen=false;
+    try{ seen = localStorage.getItem('satlink_seen')==='1'; }catch(e){}
+    if(!seen) open();
+    window.__openAbout = open;
+  })();
+
+  var deferred=null;
+  addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault(); deferred=e;
+    show('可安裝為應用程式（離線可用）', '安裝', function(){
+      P.classList.remove('show'); deferred.prompt(); deferred=null; });
+  });
+  addEventListener('appinstalled', function(){ P.classList.remove('show'); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Access forbidden</title>
+		<style type="text/css">
+			body {
+				width: 500px;
+				margin: 100px auto;
+				font: 300 120% "OpenSans", "Helvetica Neue", "Helvetica", Arial, Verdana, sans-serif;
+			}
+
+			h1 {
+				font-weight: 300;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Access forbidden</h1>
+
+		<p>Sorry, you do not have permission to access this resource.</p>
+		<p>Your IP address: 1.172.5.230</p>
+	<script type="text/javascript" src="/_Incapsula_Resource?SWJIYLWA=719d34d31c8e3a6e6fffd425f7e032f3&ns=1&cb=173681514" async></script></body>
+</html>
+

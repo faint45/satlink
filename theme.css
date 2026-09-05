@@ -1,0 +1,374 @@
+/* ── SatLink 視覺語彙 ───────────────────────────────────────────
+   取向：深空觀測站的儀器面板，不是網頁儀表板。
+   三個刻意的決定，用來擺脫「通用暗色卡片」那種預設長相：
+
+   1. 沒有圓角卡片與毛玻璃。改用轉角標記界定區域 —— 測繪圖與取景器的框，
+      是「框住」內容而不是「裝著」內容。
+   2. 冷青換成暖象牙白 + 琥珀。冷青是預設值；紙張般的暖白配琥珀讓它讀起來
+      像印刷的星圖與儀器刻度。冷色（--live）保留給「此刻真的在動」的狀態，
+      稀有才有訊號意義。
+   3. 數值不用進度條，改用真實刻度標尺 —— 那是儀器的語言，不是網頁的語言。
+
+   另加極低強度的膠片顆粒、掃描線與暗角，給畫面物質感。 */
+
+:root{
+  --void:#04060c;
+  --ink:rgba(6,9,16,.93);
+  --line:rgba(226,222,210,.16);
+  --line-2:rgba(226,222,210,.07);
+  --txt:#DFDACE;
+  --dim:#79839A;
+  --amber:#E9A94A;
+  --live:#57E0BA;
+  --alert:#FF6E52;
+  --disp:"Chakra Petch","Noto Sans TC",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --han:"Noto Sans TC",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--void);color:var(--txt);
+  font-family:var(--han);overflow:hidden;-webkit-font-smoothing:antialiased}
+#gl{position:fixed;inset:0;display:block}
+
+/* 質感層：掃描線 + 暗角 + 顆粒。不吃事件。 */
+body::before,body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:30}
+body::before{
+  background:repeating-linear-gradient(0deg, rgba(255,255,255,.016) 0 1px, transparent 1px 3px);
+  mix-blend-mode:screen}
+/* 暗角獨立一層：正常混合才壓得暗（screen 疊黑色是無效運算） */
+#vig{position:fixed;inset:0;pointer-events:none;z-index:28;
+  background:radial-gradient(128% 92% at 50% 46%, transparent 52%, rgba(0,0,0,.62) 100%)}
+body::after{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  opacity:.045;mix-blend-mode:overlay}
+
+/* 視野四角的套版記號 */
+.reg{position:fixed;width:16px;height:16px;pointer-events:none;z-index:29;
+  border-color:rgba(233,169,74,.42);border-style:solid;border-width:0}
+.reg.tl{top:9px;left:9px;border-top-width:1px;border-left-width:1px}
+.reg.tr{top:9px;right:9px;border-top-width:1px;border-right-width:1px}
+.reg.bl{bottom:9px;left:9px;border-bottom-width:1px;border-left-width:1px}
+.reg.br{bottom:9px;right:9px;border-bottom-width:1px;border-right-width:1px}
+
+/* 面板：轉角標記，不是圓角卡片 */
+.panel{position:fixed;background:var(--ink);border:0;border-radius:0;
+  box-shadow:0 0 0 1px var(--line-2), 0 24px 70px -20px rgba(0,0,0,.9)}
+.panel::before,.panel::after{content:"";position:absolute;width:13px;height:13px;
+  pointer-events:none;border-color:var(--amber);border-style:solid;border-width:0;opacity:.75}
+.panel::before{top:-1px;left:-1px;border-top-width:1px;border-left-width:1px}
+.panel::after{bottom:-1px;right:-1px;border-bottom-width:1px;border-right-width:1px}
+
+/* ── 左：索引軌 ───────────────────────────────────────────── */
+#left{left:20px;top:20px;width:252px;max-height:calc(100vh - 128px);
+  display:flex;flex-direction:column;overflow:hidden}
+#left h1{margin:0;padding:14px 14px 11px;font-family:var(--disp);
+  font-size:12px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--txt);border-bottom:1px solid var(--line);position:relative}
+#left h1::after{content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:1px;
+  background:linear-gradient(90deg,var(--amber),transparent 60%)}
+#left h1 small{display:block;margin-top:6px;font-family:var(--mono);font-weight:400;
+  font-size:9.5px;letter-spacing:0;text-transform:none;color:var(--dim);line-height:1.5}
+.srch{padding:11px 14px 6px}
+.srch input{width:100%;background:transparent;border:0;border-bottom:1px solid var(--line);
+  color:var(--txt);padding:5px 2px;font-size:11.5px;outline:none;font-family:var(--han);
+  transition:border-color .2s}
+.srch input:focus{border-bottom-color:var(--amber)}
+.srch input::placeholder{color:var(--dim);letter-spacing:.04em}
+#satlist{overflow-y:auto;padding-bottom:12px;scrollbar-width:thin;
+  scrollbar-color:rgba(233,169,74,.28) transparent}
+#satlist::-webkit-scrollbar{width:3px}
+#satlist::-webkit-scrollbar-thumb{background:rgba(233,169,74,.3)}
+
+.grp{margin:14px 14px 5px;padding-bottom:5px;font-family:var(--disp);
+  font-size:9px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;
+  border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:7px}
+.gtog{cursor:pointer;user-select:none}
+.gtog:hover{color:var(--amber);border-bottom-color:rgba(233,169,74,.3)}
+.gtog .cnt{font-family:var(--mono);font-size:9px;letter-spacing:0;color:var(--amber);
+  opacity:.8;background:none;padding:0}
+.gtog i{font-style:normal;font-size:8px;letter-spacing:.06em;color:#4E5771;
+  margin-left:auto;text-transform:none}
+
+/* 清單項：左緣刻度標記，取代整列高亮 */
+.sat{display:flex;align-items:center;gap:9px;padding:5px 14px;cursor:pointer;
+  font-size:11.5px;position:relative;transition:color .14s}
+.sat::before{content:"";position:absolute;left:0;top:50%;width:5px;height:1px;
+  background:var(--line);transform:translateY(-50%);transition:width .14s,background .14s}
+.sat:hover{color:#fff}
+.sat:hover::before{background:var(--amber);width:9px}
+.sat.on{color:#fff}
+.sat.on::before{background:var(--amber);width:14px;box-shadow:0 0 6px var(--amber)}
+.dot{width:5px;height:5px;flex:none;transform:rotate(45deg)}
+.sat .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sat .el{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:-.02em}
+.sat.vis .el{color:var(--live)}
+.more{padding:6px 14px;font-size:9.5px;color:#6A748C;font-family:var(--mono)}
+
+/* ── 右：儀器讀數 ─────────────────────────────────────────── */
+#right{right:20px;top:20px;width:296px;max-height:calc(100vh - 128px);overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(233,169,74,.28) transparent}
+#right::-webkit-scrollbar{width:3px}
+#right::-webkit-scrollbar-thumb{background:rgba(233,169,74,.3)}
+#right .hd{padding:14px 15px 12px;border-bottom:1px solid var(--line);position:relative}
+#right .hd::after{content:"";position:absolute;left:15px;bottom:-1px;width:36px;height:1px;
+  background:var(--amber)}
+#right .hd .t{font-family:var(--disp);font-size:16px;font-weight:600;color:#fff;
+  letter-spacing:.03em;line-height:1.15}
+#right .hd .s{font-family:var(--mono);font-size:9.5px;color:var(--amber);margin-top:6px;
+  opacity:.85}
+.sec{padding:12px 15px 13px;border-bottom:1px solid var(--line-2)}
+.sec:last-child{border-bottom:0}
+.lbl{font-family:var(--disp);font-size:8.5px;letter-spacing:.22em;color:#6E7A96;
+  text-transform:uppercase;margin-bottom:9px}
+.row{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:11px;padding:3px 0;gap:10px}
+.row .k{color:var(--dim)}
+.row .v{font-family:var(--mono);font-size:12.5px;color:var(--txt);text-align:right;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.row .v.g{color:var(--live)} .row .v.w{color:var(--amber)} .row .v.b{color:var(--alert)}
+.row .u{color:#4E5771;font-size:9.5px;margin-left:3px}
+
+/* 鏈路餘裕：刻度標尺，不是圓角進度條 */
+.bar{height:16px;margin-top:11px;position:relative;
+  border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.bar::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,var(--line-2) 0 1px,transparent 1px 10%)}
+.bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--line)}
+.bar i{position:absolute;left:0;bottom:1px;height:7px;display:block;
+  background:linear-gradient(90deg,var(--alert),var(--amber) 45%,var(--live));
+  transition:width .22s ease-out}
+
+.cite{font-family:var(--mono);font-size:9px;color:#818BA4;line-height:1.7;margin-top:11px;
+  padding-top:10px;border-top:1px solid var(--line-2);letter-spacing:-.01em}
+.cite b{color:var(--amber);font-weight:400;opacity:.85}
+
+/* ── 底：時間軸條 ─────────────────────────────────────────── */
+#time{left:50%;transform:translateX(-50%);bottom:20px;padding:0;white-space:nowrap;
+  display:flex;align-items:stretch;background:var(--ink)}
+#utc{font-family:var(--mono);font-size:12px;color:var(--txt);padding:11px 16px;
+  border-right:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+#time .sp{display:flex}
+.sb{white-space:nowrap;background:none;border:0;border-right:1px solid var(--line-2);color:var(--dim);
+  font-family:var(--disp);font-size:10px;letter-spacing:.1em;padding:11px 13px;
+  cursor:pointer;transition:color .16s,background .16s;position:relative}
+.sb:last-child{border-right:0}
+.sb:hover{color:var(--txt);background:rgba(233,169,74,.05)}
+.sb.on{color:var(--amber)}
+.sb.on::after{content:"";position:absolute;left:13px;right:13px;bottom:6px;height:1px;
+  background:var(--amber);box-shadow:0 0 8px var(--amber)}
+
+/* 圖層列：疊在時間列上方，兩列構成主控台。
+   （原本想做右側垂直軌，但會與右方讀數面板重疊 —— 兩者都靠右。） */
+#layers{left:50%;transform:translateX(-50%);bottom:64px;display:flex;
+  background:var(--ink);white-space:nowrap}
+#layers .sb{padding:9px 12px;font-size:10px}
+
+/* 底部只留時間控制，收窄 */
+#time .sb{padding:11px 11px;font-size:10px}
+#utc{padding:11px 14px;font-size:11.5px}
+
+/* ── 覆蓋訊息 ─────────────────────────────────────────────── */
+#warn{position:fixed;left:50%;transform:translateX(-50%);top:44px;font-size:10px;
+  font-family:var(--mono);color:var(--amber);background:rgba(28,18,4,.86);
+  border-left:2px solid var(--amber);padding:6px 13px;display:none}
+#off{position:fixed;left:50%;transform:translateX(-50%);top:16px;display:none;
+  background:rgba(28,18,4,.86);border-left:2px solid var(--amber);color:var(--amber);
+  font-family:var(--mono);font-size:10px;padding:5px 13px;z-index:20}
+#off.show{display:block}
+#boot{position:fixed;inset:0;display:grid;place-items:center;background:var(--void);z-index:31;
+  font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;line-height:2.2;
+  letter-spacing:.06em}
+#boot b{color:var(--amber);font-weight:400}
+
+/* ── 任務資訊 ─────────────────────────────────────────────── */
+#mission{left:292px;bottom:20px;width:312px;display:none}
+#mission .mhd{padding:12px 15px;border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:9px;position:relative}
+#mission .mhd::after{content:"";position:absolute;left:15px;bottom:-1px;width:30px;height:1px;
+  background:var(--amber)}
+#mission .mhd span{font-family:var(--disp);font-size:13.5px;font-weight:600;color:#fff}
+#mission .mhd b{font-family:var(--disp);font-size:8.5px;font-weight:500;letter-spacing:.18em;
+  color:var(--dim);margin-left:auto;text-transform:uppercase}
+
+/* ── 影像面板 ─────────────────────────────────────────────── */
+#cam{right:20px;top:20px;width:384px;display:none;overflow:hidden;z-index:15}
+#cam.show{display:block}
+#cam .chd{display:flex;align-items:center;gap:9px;padding:11px 13px;
+  border-bottom:1px solid var(--line);position:relative}
+#cam .chd::after{content:"";position:absolute;left:13px;bottom:-1px;width:30px;height:1px;
+  background:var(--live)}
+#cam .chd span{font-family:var(--disp);font-size:13px;font-weight:600;color:#fff;flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#cam .chd .sb{padding:3px 9px;border:0}
+#c_player{background:#000;line-height:0;position:relative}
+#c_player::after{content:"";position:absolute;inset:0;pointer-events:none;
+  box-shadow:inset 0 0 60px rgba(0,0,0,.55)}
+
+/* ── 計數徽章 ─────────────────────────────────────────────── */
+#stats{position:fixed;left:20px;bottom:20px;display:none;gap:16px;align-items:center;
+  background:var(--ink);padding:8px 13px;font-family:var(--mono);font-size:10px;
+  color:var(--dim);z-index:20;box-shadow:0 0 0 1px var(--line-2)}
+#stats.show{display:flex}
+#stats b{color:var(--live);font-weight:400}
+#stats i{font-style:normal;color:var(--amber)}
+
+/* ── PWA 提示 ─────────────────────────────────────────────── */
+#pwa{position:fixed;right:20px;bottom:20px;display:none;gap:9px;align-items:center;
+  background:var(--ink);padding:9px 12px;font-size:11px;z-index:20;
+  box-shadow:0 0 0 1px var(--line-2)}
+#pwa.show{display:flex}
+#pwa .sb{border:1px solid var(--line);padding:5px 10px}
+
+/* ══════════════════════════════════════════════════════════════
+   手機版面（≤ 720px）
+   桌面版是三面板同時常駐；在 375px 寬的螢幕上這會讓左右面板幾乎完全重疊、
+   控制列溢出兩側、地球被蓋光。實測 375×812 下不可用。
+   手機改為：地球佔滿畫面，目錄收成抽屜，讀數收成底部可展開面板，
+   控制列可橫向捲動。所有面板仍沿用轉角標記與刻度語彙，不改設計語言。
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 720px){
+  .reg{width:11px;height:11px}
+  .reg.tl,.reg.tr{top:6px} .reg.bl,.reg.br{bottom:6px}
+  .reg.tl,.reg.bl{left:6px} .reg.tr,.reg.br{right:6px}
+
+  /* 目錄：預設收起的左側抽屜 */
+  #left{left:0;top:0;bottom:0;width:82vw;max-width:310px;max-height:none;
+    transform:translateX(-102%);transition:transform .22s ease-out;z-index:22}
+  body.m-nav #left{transform:translateX(0)}
+  #left::before,#left::after{display:none}
+  #satlist{flex:1}
+
+  /* 開關目錄的按鈕 */
+  #mnav{position:fixed;left:10px;top:10px;z-index:23;background:var(--ink);
+    border:0;box-shadow:0 0 0 1px var(--line-2);color:var(--amber);
+    font-family:var(--disp);font-size:11px;letter-spacing:.14em;padding:9px 13px;
+    cursor:pointer}
+  body.m-nav #mnav{color:var(--txt)}
+  #mscrim{position:fixed;inset:0;background:rgba(2,4,9,.62);z-index:21;
+    opacity:0;pointer-events:none;transition:opacity .22s}
+  body.m-nav #mscrim{opacity:1;pointer-events:auto}
+
+  /* 讀數：底部可展開面板。收合時只露出標題列。 */
+  /* 用高度收合，不用 transform 位移：位移會讓面板整片壓在下方控制列上，
+     實測收合時仍蓋住圖層列與時間列，導致按鈕點不到。 */
+  #right{left:0;right:0;top:auto;bottom:74px;width:auto;max-width:none;
+    max-height:58px;overflow:hidden;overscroll-behavior:contain;
+    transition:max-height .24s ease-out;z-index:16}
+  body.m-read #right{max-height:46vh;overflow-y:auto}
+  #right::before{display:none}
+  #right .hd{cursor:pointer;padding-right:44px;position:relative}
+  /* 收合／展開的指示箭頭 */
+  #right .hd::before{content:"";position:absolute;right:16px;top:22px;
+    width:8px;height:8px;border-right:1px solid var(--amber);
+    border-bottom:1px solid var(--amber);transform:rotate(-135deg);
+    transition:transform .22s}
+  body.m-read #right .hd::before{transform:rotate(45deg);top:18px}
+  #right .hd .t{font-size:14px}
+
+  /* 控制列：整寬、可橫向捲動，不再溢出畫面 */
+  #layers,#time{left:0;right:0;transform:none;width:100%;
+    overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none}
+  #layers::-webkit-scrollbar,#time::-webkit-scrollbar{display:none}
+  #layers{bottom:37px;border-bottom:1px solid var(--line-2)}
+  #time{bottom:0}
+  #layers::before,#layers::after,#time::before,#time::after{display:none}
+  #layers .sb,#time .sb{padding:10px 12px;font-size:10.5px;flex:0 0 auto}
+  #utc{padding:10px 12px;font-size:10.5px;flex:0 0 auto}
+
+  /* 影像面板：整寬覆蓋 */
+  #cam{left:0;right:0;top:0;width:auto;z-index:24}
+  #cam::before,#cam::after{display:none}
+
+  /* 任務資訊：改到讀數面板上方 */
+  #mission{left:0;right:0;bottom:74px;width:auto;z-index:17}
+  #mission::before{display:none}
+
+  /* 計數與 PWA 提示：讓開底部控制列 */
+  #stats{left:0;right:0;bottom:74px;justify-content:center;padding:6px 10px;
+    font-size:9.5px;z-index:15}
+  #pwa{left:10px;right:10px;bottom:80px;justify-content:center}
+  #warn{top:56px;font-size:9.5px;max-width:92vw;text-align:center}
+  #off{top:56px}
+}
+/* 桌面不需要手機專用的觸發元件 */
+@media (min-width: 721px){ #mnav,#mscrim{display:none} }
+
+/* ══════════════════════════════════════════════════════════════
+   關於／首次進站說明
+   對外公開時，陌生人打開連結會直接掉進一個佈滿衛星的 3D 地球，
+   沒有任何線索。這一頁負責三件事：說明這是什麼、標明什麼是真的什麼不是、
+   以及列出資料來源 —— 最後一項不只是禮貌：HYG 星表為 CC BY-SA 2.5、
+   OpenNGC 為 CC BY-SA 4.0，姓名標示是授權義務，寫在 README 裡不算數。
+   ══════════════════════════════════════════════════════════════ */
+#about{position:fixed;inset:0;z-index:40;display:none;
+  background:radial-gradient(120% 90% at 50% 40%, rgba(8,12,22,.94), rgba(2,4,9,.985));
+  overflow-y:auto;-webkit-overflow-scrolling:touch}
+#about.show{display:block}
+.abox{max-width:820px;margin:0 auto;padding:clamp(28px,6vh,64px) clamp(18px,5vw,40px)}
+.ahd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding-bottom:14px;border-bottom:1px solid var(--line);position:relative}
+.ahd::after{content:"";position:absolute;left:0;bottom:-1px;width:52px;height:1px;
+  background:var(--amber)}
+.ahd span{font-family:var(--disp);font-size:clamp(20px,4.6vw,30px);font-weight:600;
+  letter-spacing:.2em;color:#fff}
+.ahd b{font-family:var(--han);font-size:12px;font-weight:400;color:var(--dim);
+  letter-spacing:.1em}
+.ahd .sb{margin-left:auto;border:1px solid var(--amber);color:var(--amber);
+  padding:9px 18px;font-size:12px}
+.ahd .sb:hover{background:rgba(233,169,74,.12)}
+.abody{padding-top:20px}
+.lead{font-size:14px;line-height:1.95;color:var(--txt);margin:0 0 26px;max-width:66ch}
+.lead b{color:var(--amber);font-weight:400}
+.acol{display:grid;grid-template-columns:1fr 1fr;gap:26px 34px;margin-bottom:26px}
+#about h4{font-family:var(--disp);font-size:9px;letter-spacing:.24em;color:#6E7A96;
+  text-transform:uppercase;margin:0 0 11px;padding-bottom:6px;
+  border-bottom:1px solid var(--line-2)}
+#about ul{margin:0;padding:0;list-style:none}
+#about li{font-size:12px;line-height:1.85;color:var(--dim);padding-left:14px;
+  position:relative;margin-bottom:5px}
+#about li::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:1px;
+  background:var(--line)}
+#about li b{color:var(--txt);font-weight:400}
+/* 真／近似／示意 的分類標記，用刻度感的小標而非彩色徽章 */
+#about li s{text-decoration:none;font-family:var(--mono);font-size:9.5px;
+  color:var(--amber);letter-spacing:.08em;margin-right:6px;opacity:.9}
+.src{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:5px 20px;margin-bottom:24px}
+.src span{font-size:11px;color:var(--dim);line-height:1.75}
+.src a{color:var(--txt);text-decoration:none;border-bottom:1px solid var(--line)}
+.src a:hover{color:var(--amber);border-bottom-color:var(--amber)}
+.fine{font-family:var(--mono);font-size:10px;line-height:1.85;color:#6A748C;
+  padding-top:14px;border-top:1px solid var(--line-2);margin:0}
+
+@media (max-width:720px){
+  .acol{grid-template-columns:1fr;gap:20px}
+  .ahd .sb{margin-left:0;width:100%;text-align:center;margin-top:10px}
+  .lead{font-size:13px;line-height:1.85}
+  /* 抽屜標題讓開「目錄」按鈕 */
+  #left h1{padding-left:82px}
+}
+
+/* 聚焦模式指示：告訴使用者現在繞著誰轉、怎麼退出 */
+#focus{position:fixed;left:50%;transform:translateX(-50%);top:16px;display:none;
+  gap:12px;align-items:center;background:var(--ink);padding:7px 8px 7px 14px;
+  box-shadow:0 0 0 1px var(--line-2);z-index:19}
+#focus.show{display:flex}
+#focus span{font-family:var(--disp);font-size:11px;letter-spacing:.1em;color:var(--amber)}
+#focus .sb{border:1px solid var(--line);padding:5px 10px;font-size:9.5px}
+@media (max-width:720px){ #focus{top:56px;left:10px;right:10px;transform:none;
+  justify-content:space-between} }
+
+/* 漫遊提示條。與 #focus 同一個位置語彙（畫面上緣置中），但配色不同：
+   琥珀＝正在聚焦某顆衛星，青＝正在自動巡遊，兩種狀態不會同時出現。 */
+#roam_hint{position:fixed;left:50%;transform:translateX(-50%);top:16px;display:none;
+  gap:12px;align-items:center;background:var(--ink);padding:7px 8px 7px 14px;
+  box-shadow:0 0 0 1px var(--line-2);z-index:19}
+#roam_hint.show{display:flex}
+#roam_hint span{font-family:var(--disp);font-size:11px;letter-spacing:.1em;color:#5ff0c8}
+#roam_hint i{font-style:normal;font-size:10px;color:var(--dim);letter-spacing:.02em}
+#roam_hint .sb{border:1px solid var(--line);padding:5px 10px;font-size:9.5px}
+@media (max-width:720px){
+  #roam_hint{top:56px;left:10px;right:10px;transform:none;justify-content:space-between}
+  #roam_hint i{display:none}                 /* 手機寬度不夠，留下狀態與結束鍵就好 */
+}
