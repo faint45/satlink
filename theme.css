@@ -333,6 +333,12 @@ body::after{
   #pwa{ bottom:calc(80px + env(safe-area-inset-bottom,0px)); }
   #layers,#time{ padding-left:env(safe-area-inset-left,0px);
                  padding-right:env(safe-area-inset-right,0px); }
+  /* 關於頁是全螢幕可捲動的，上下都要讓開，否則捲到底時最後一行
+     會被 home indicator 壓住，而標題會貼在動態島邊緣。 */
+  .abox{ padding-top:calc(clamp(28px,6vh,64px) + env(safe-area-inset-top,0px));
+         padding-bottom:calc(clamp(28px,6vh,64px) + env(safe-area-inset-bottom,0px)); }
+  #cam{ padding-left:env(safe-area-inset-left,0px);
+        padding-right:env(safe-area-inset-right,0px); }
 }
 
 /* 桌面不需要手機專用的觸發元件 */
